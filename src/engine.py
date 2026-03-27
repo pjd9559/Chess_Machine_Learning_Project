@@ -1,0 +1,188 @@
+"""
+engine.py — Game engine: move validation, game loop, and bot decision logic.
+
+Uses python-chess for rule enforcement and wraps personality heuristics
+for the bot move selection.
+"""
+
+import chess
+import random
+from src.personalities import get_personality, BasePersonality
+
+
+class GameEngine:
+    """
+    Manages a single chess game.
+
+    Attributes
+    ----------
+    board      : chess.Board — current position
+    move_stack : list[chess.Move] — history for display / undo
+    last_move  : optional last move (for highlighting)
+    """
+
+    def __init__(self, board: chess.Board | None = None):
+        self.board: chess.Board = board if board else chess.Board()
+        self.last_move: chess.Move | None = None
+
+    # ── Human moves ───────────────────────────────────────────────────────
+
+    def make_move(self, uci_str: str, promotion_piece: chess.PieceType | None = None) -> bool:
+        """
+        Attempt to play a UCI-string move (e.g. 'e2e4').
+        Returns True if the move was legal and applied, False otherwise.
+
+        For pawn promotion, pass promotion_piece (e.g. chess.QUEEN).
+        """
+        try:
+            move = chess.Move.from_uci(uci_str)
+        except ValueError:
+            return False
+
+        # Handle promotion
+        if promotion_piece and self._is_promotion_move(move):
+            move = chess.Move(move.from_square, move.to_square, promotion=promotion_piece)
+
+        if move in self.board.legal_moves:
+            self.board.push(move)
+            self.last_move = move
+            return True
+
+        # Try with auto-queen promotion
+        if self._is_promotion_move(move) and not move.promotion:
+            promo_move = chess.Move(move.from_square, move.to_square, promotion=chess.QUEEN)
+            if promo_move in self.board.legal_moves:
+                self.board.push(promo_move)
+                self.last_move = promo_move
+                return True
+
+        return False
+
+    def make_move_obj(self, move: chess.Move) -> bool:
+        """Apply a chess.Move object directly if legal."""
+        if move in self.board.legal_moves:
+            self.board.push(move)
+            self.last_move = move
+            return True
+        return False
+
+    # ── Bot moves ─────────────────────────────────────────────────────────
+
+    def bot_move(self, personality_name: str) -> chess.Move | None:
+        """
+        Generate a bot move using the given personality.
+
+        1. Generate all legal moves.
+        2. For each, push the move and evaluate the resulting position.
+        3. Pick the move with the highest score.
+        """
+        if self.board.is_game_over():
+            return None
+
+        personality = get_personality(personality_name)
+        legal_moves = list(self.board.legal_moves)
+
+        if not legal_moves:
+            return None
+
+        best_move  = None
+        best_score = float("-inf")
+
+        for move in legal_moves:
+            self.board.push(move)
+            # Evaluate from the OPPONENT's perspective (since we just moved),
+            # then negate — or simply evaluate before the push with the current
+            # side to move.  Here we use the simpler approach: evaluate the
+            # position *after* the move from the mover's perspective.
+            score = -personality.evaluate(self.board)
+            self.board.pop()
+
+            # Add small random noise to break ties and add variety
+            score += random.uniform(-5, 5)
+
+            if score > best_score:
+                best_score = score
+                best_move  = move
+
+        if best_move:
+            self.board.push(best_move)
+            self.last_move = best_move
+
+        return best_move
+
+    # ── Game status ───────────────────────────────────────────────────────
+
+    def get_game_status(self) -> dict:
+        """
+        Return a dict describing the current game status.
+
+        Keys:
+            is_over      : bool
+            result       : str   ('1-0', '0-1', '1/2-1/2', '*')
+            reason       : str   ('checkmate', 'stalemate', 'insufficient',
+                                   'fifty_move', 'threefold', 'ongoing')
+            in_check     : bool
+            turn         : str   ('white' | 'black')
+        """
+        status = {
+            "is_over":  self.board.is_game_over(),
+            "in_check": self.board.is_check(),
+            "turn":     "white" if self.board.turn == chess.WHITE else "black",
+            "result":   self.board.result() if self.board.is_game_over() else "*",
+            "reason":   "ongoing",
+        }
+
+        if self.board.is_checkmate():
+            status["reason"] = "checkmate"
+        elif self.board.is_stalemate():
+            status["reason"] = "stalemate"
+        elif self.board.is_insufficient_material():
+            status["reason"] = "insufficient_material"
+        elif self.board.can_claim_fifty_moves():
+            status["reason"] = "fifty_move_rule"
+        elif self.board.can_claim_threefold_repetition():
+            status["reason"] = "threefold_repetition"
+
+        return status
+
+    def undo_move(self) -> bool:
+        """Undo the last move. Returns True if successful."""
+        if self.board.move_stack:
+            self.board.pop()
+            self.last_move = self.board.move_stack[-1] if self.board.move_stack else None
+            return True
+        return False
+
+    def undo_two_moves(self) -> bool:
+        """Undo two moves (player + bot). Returns True if successful."""
+        if len(self.board.move_stack) >= 2:
+            self.board.pop()
+            self.board.pop()
+            self.last_move = self.board.move_stack[-1] if self.board.move_stack else None
+            return True
+        return False
+
+    def get_move_history(self) -> list[str]:
+        """Return list of SAN moves played so far, paired by move number."""
+        temp_board = chess.Board()
+        moves = []
+        for move in self.board.move_stack:
+            san = temp_board.san(move)
+            moves.append(san)
+            temp_board.push(move)
+        return moves
+
+    def get_legal_moves_for_square(self, square: int) -> list[chess.Move]:
+        """Return all legal moves originating from the given square."""
+        return [m for m in self.board.legal_moves if m.from_square == square]
+
+    # ── Internal helpers ──────────────────────────────────────────────────
+
+    def _is_promotion_move(self, move: chess.Move) -> bool:
+        """Check if a move would be a pawn promotion."""
+        piece = self.board.piece_at(move.from_square)
+        if piece is None or piece.piece_type != chess.PAWN:
+            return False
+        target_rank = chess.square_rank(move.to_square)
+        return (piece.color == chess.WHITE and target_rank == 7) or \
+               (piece.color == chess.BLACK and target_rank == 0)
