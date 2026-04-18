@@ -8,7 +8,8 @@ for the bot move selection.
 import chess
 import random
 from src.personalities import get_personality, BasePersonality
-
+import torch
+from src.alphazero_bot.encoding import board_to_tensor, move_to_index
 
 class GameEngine:
     """
@@ -72,9 +73,9 @@ class GameEngine:
         """
         Generate a bot move using the given personality.
 
-        1. Generate all legal moves.
-        2. For each, push the move and evaluate the resulting position.
-        3. Pick the move with the highest score.
+        Supports:
+        - heuristic personalities (existing)
+        - neural network personalities (NEW)
         """
         if self.board.is_game_over():
             return None
@@ -85,31 +86,60 @@ class GameEngine:
         if not legal_moves:
             return None
 
-        best_move  = None
+        # ── NEW: Neural network path ─────────────────────────
+        if hasattr(personality, "model"):
+            model = personality.model
+            board = self.board
+
+            x = board_to_tensor(board).unsqueeze(0)
+
+            with torch.no_grad():
+                logits, _ = model(x)
+
+            probs = torch.softmax(logits, dim=1).squeeze(0)
+
+            best_move = None
+            best_score = float("-inf")
+
+            for move in legal_moves:
+                try:
+                    idx = move_to_index(board, move)
+                    score = probs[idx].item()
+
+                    if score > best_score:
+                        best_score = score
+                        best_move = move
+                except Exception:
+                    continue
+
+            # fallback
+            if best_move is None:
+                best_move = random.choice(legal_moves)
+
+            self.board.push(best_move)
+            self.last_move = best_move
+            return best_move
+
+        # ── EXISTING heuristic path ─────────────────────────
+        best_move = None
         best_score = float("-inf")
 
         for move in legal_moves:
             self.board.push(move)
-            # Evaluate from the OPPONENT's perspective (since we just moved),
-            # then negate — or simply evaluate before the push with the current
-            # side to move.  Here we use the simpler approach: evaluate the
-            # position *after* the move from the mover's perspective.
             score = -personality.evaluate(self.board)
             self.board.pop()
 
-            # Add small random noise to break ties and add variety
             score += random.uniform(-5, 5)
 
             if score > best_score:
                 best_score = score
-                best_move  = move
+                best_move = move
 
         if best_move:
             self.board.push(best_move)
             self.last_move = best_move
 
         return best_move
-
     # ── Game status ───────────────────────────────────────────────────────
 
     def get_game_status(self) -> dict:

@@ -16,10 +16,54 @@ import base64
 from src.engine import GameEngine
 from src.personalities import ALL_PERSONALITIES, get_personality
 from src.utils import render_board_svg
+import torch
+from src.alphazero_bot.model import ChessNet
+
+# ── Load pretrained models ─────────────────────────────
+
+@st.cache_resource
+def load_model(path):
+    model = ChessNet()
+    checkpoint = torch.load(path, map_location="cpu")
+    model.load_state_dict(checkpoint["model_state"])
+    model.eval()
+    return model
+
+
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent
+
+PRE_2000_PATH = BASE_DIR / "src" / "models" / "pre_2000.pt"
+POST_2020_PATH = BASE_DIR / "src" / "models" / "post_2020.pt"
+
+PRE_2000_MODEL = load_model(PRE_2000_PATH)
+POST_2020_MODEL = load_model(POST_2020_PATH)
+
+
+# ── Inject new NN personalities ─────────────────────────
+
+ALL_PERSONALITIES["pre_2000_nn"] = type("P", (), {
+    "name": "Pre-2000 Bot",
+    "icon": "♜",
+    "description": "Trained on classical-era games (up to 1989)",
+    "color": "#3498db",
+    "model": PRE_2000_MODEL
+})()
+
+ALL_PERSONALITIES["post_2020_nn"] = type("P", (), {
+    "name": "Post-2020 Bot",
+    "icon": "🔥",
+    "description": "Trained on modern engine-influenced games",
+    "color": "#e74c3c",
+    "model": POST_2020_MODEL
+})()
 
 # ═══════════════════════════════════════════════════════════════════════════════
 #  Page config & CSS
 # ═══════════════════════════════════════════════════════════════════════════════
+
+
 
 st.set_page_config(
     page_title="Grandmaster Evolution ♟",
