@@ -1,46 +1,30 @@
-"""
-engine.py — Game engine: move validation, game loop, and bot decision logic.
-
-Uses python-chess for rule enforcement and wraps personality heuristics
-for the bot move selection.
-"""
-
 import chess
 import random
-from src.personalities import get_personality, BasePersonality
 import torch
+
+from src.personalities import get_personality, BasePersonality
 from src.alphazero_bot.encoding import board_to_tensor, move_to_index
+from src.alphazero_bot.mcts import AlphaZeroMCTS, choose_move
+
 
 class GameEngine:
     """
     Manages a single chess game.
-
-    Attributes
-    ----------
-    board      : chess.Board — current position
-    move_stack : list[chess.Move] — history for display / undo
-    last_move  : optional last move (for highlighting)
     """
 
     def __init__(self, board: chess.Board | None = None):
         self.board: chess.Board = board if board else chess.Board()
         self.last_move: chess.Move | None = None
 
-    # ── Human moves ───────────────────────────────────────────────────────
+    # ── Human moves ─────────────────────────────────────────
 
     def make_move(self, uci_str: str, promotion_piece: chess.PieceType | None = None) -> bool:
-        """
-        Attempt to play a UCI-string move (e.g. 'e2e4').
-        Returns True if the move was legal and applied, False otherwise.
-
-        For pawn promotion, pass promotion_piece (e.g. chess.QUEEN).
-        """
         try:
             move = chess.Move.from_uci(uci_str)
         except ValueError:
             return False
 
-        # Handle promotion
+        # Promotion handling
         if promotion_piece and self._is_promotion_move(move):
             move = chess.Move(move.from_square, move.to_square, promotion=promotion_piece)
 
@@ -49,7 +33,7 @@ class GameEngine:
             self.last_move = move
             return True
 
-        # Try with auto-queen promotion
+        # Auto-queen fallback
         if self._is_promotion_move(move) and not move.promotion:
             promo_move = chess.Move(move.from_square, move.to_square, promotion=chess.QUEEN)
             if promo_move in self.board.legal_moves:
@@ -60,23 +44,21 @@ class GameEngine:
         return False
 
     def make_move_obj(self, move: chess.Move) -> bool:
-        """Apply a chess.Move object directly if legal."""
         if move in self.board.legal_moves:
             self.board.push(move)
             self.last_move = move
             return True
         return False
 
-    # ── Bot moves ─────────────────────────────────────────────────────────
+    # ── Bot moves ─────────────────────────────────────────
 
     def bot_move(self, personality_name: str) -> chess.Move | None:
         """
-        Generate a bot move using the given personality.
-
-        Supports:
-        - heuristic personalities (existing)
-        - neural network personalities (NEW)
+        Generate a bot move using:
+        - heuristic personalities
+        - neural network + MCTS (AlphaZero-style)
         """
+
         if self.board.is_game_over():
             return None
 
@@ -86,41 +68,41 @@ class GameEngine:
         if not legal_moves:
             return None
 
-        # ── NEW: Neural network path ─────────────────────────
+        # ─────────────────────────────────────────────
+        # 🔥 Neural Network + MCTS (KEY UPGRADE)
+        # ─────────────────────────────────────────────
         if hasattr(personality, "model"):
             model = personality.model
-            board = self.board
 
-            x = board_to_tensor(board).unsqueeze(0)
+            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-            with torch.no_grad():
-                logits, _ = model(x)
+            # Move model to correct device
+            model = model.to(device)
+            model.eval()
 
-            probs = torch.softmax(logits, dim=1).squeeze(0)
+            # 🔥 MCTS SEARCH
+            mcts = AlphaZeroMCTS(
+                model=model,
+                device=device,
+                simulations=64,   # 🔥 increase to 128/256 later for stronger play
+            )
 
-            best_move = None
-            best_score = float("-inf")
+            visits, _ = mcts.run(self.board)
 
-            for move in legal_moves:
-                try:
-                    idx = move_to_index(board, move)
-                    score = probs[idx].item()
+            # Deterministic best move (no randomness)
+            move = choose_move(visits, temperature=0.0)
 
-                    if score > best_score:
-                        best_score = score
-                        best_move = move
-                except Exception:
-                    continue
+            # Safety fallback
+            if move not in legal_moves:
+                move = random.choice(legal_moves)
 
-            # fallback
-            if best_move is None:
-                best_move = random.choice(legal_moves)
+            self.board.push(move)
+            self.last_move = move
+            return move
 
-            self.board.push(best_move)
-            self.last_move = best_move
-            return best_move
-
-        # ── EXISTING heuristic path ─────────────────────────
+        # ─────────────────────────────────────────────
+        # Heuristic personalities (unchanged)
+        # ─────────────────────────────────────────────
         best_move = None
         best_score = float("-inf")
 
@@ -140,26 +122,16 @@ class GameEngine:
             self.last_move = best_move
 
         return best_move
-    # ── Game status ───────────────────────────────────────────────────────
+
+    # ── Game status ───────────────────────────────────────
 
     def get_game_status(self) -> dict:
-        """
-        Return a dict describing the current game status.
-
-        Keys:
-            is_over      : bool
-            result       : str   ('1-0', '0-1', '1/2-1/2', '*')
-            reason       : str   ('checkmate', 'stalemate', 'insufficient',
-                                   'fifty_move', 'threefold', 'ongoing')
-            in_check     : bool
-            turn         : str   ('white' | 'black')
-        """
         status = {
-            "is_over":  self.board.is_game_over(),
+            "is_over": self.board.is_game_over(),
             "in_check": self.board.is_check(),
-            "turn":     "white" if self.board.turn == chess.WHITE else "black",
-            "result":   self.board.result() if self.board.is_game_over() else "*",
-            "reason":   "ongoing",
+            "turn": "white" if self.board.turn == chess.WHITE else "black",
+            "result": self.board.result() if self.board.is_game_over() else "*",
+            "reason": "ongoing",
         }
 
         if self.board.is_checkmate():
@@ -176,7 +148,6 @@ class GameEngine:
         return status
 
     def undo_move(self) -> bool:
-        """Undo the last move. Returns True if successful."""
         if self.board.move_stack:
             self.board.pop()
             self.last_move = self.board.move_stack[-1] if self.board.move_stack else None
@@ -184,7 +155,6 @@ class GameEngine:
         return False
 
     def undo_two_moves(self) -> bool:
-        """Undo two moves (player + bot). Returns True if successful."""
         if len(self.board.move_stack) >= 2:
             self.board.pop()
             self.board.pop()
@@ -193,7 +163,6 @@ class GameEngine:
         return False
 
     def get_move_history(self) -> list[str]:
-        """Return list of SAN moves played so far, paired by move number."""
         temp_board = chess.Board()
         moves = []
         for move in self.board.move_stack:
@@ -203,16 +172,18 @@ class GameEngine:
         return moves
 
     def get_legal_moves_for_square(self, square: int) -> list[chess.Move]:
-        """Return all legal moves originating from the given square."""
         return [m for m in self.board.legal_moves if m.from_square == square]
 
-    # ── Internal helpers ──────────────────────────────────────────────────
+    # ── Internal helpers ───────────────────────────────
 
     def _is_promotion_move(self, move: chess.Move) -> bool:
-        """Check if a move would be a pawn promotion."""
         piece = self.board.piece_at(move.from_square)
         if piece is None or piece.piece_type != chess.PAWN:
             return False
+
         target_rank = chess.square_rank(move.to_square)
-        return (piece.color == chess.WHITE and target_rank == 7) or \
-               (piece.color == chess.BLACK and target_rank == 0)
+
+        return (
+            (piece.color == chess.WHITE and target_rank == 7)
+            or (piece.color == chess.BLACK and target_rank == 0)
+        )

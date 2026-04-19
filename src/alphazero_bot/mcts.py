@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 import chess
 import torch
 
-from encoding import N_MOVES, board_to_tensor, move_to_index
+from src.alphazero_bot.encoding import N_MOVES, board_to_tensor, move_to_index
 
 
 @dataclass

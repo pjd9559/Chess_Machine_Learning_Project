@@ -7,9 +7,9 @@ from pathlib import Path
 import chess
 import torch
 
-from encoding import board_to_tensor, outcome_to_value
-from mcts import AlphaZeroMCTS, choose_move, visits_to_policy
-from model import ChessNet
+from src.alphazero_bot.encoding import board_to_tensor, outcome_to_value
+from src.alphazero_bot.mcts import AlphaZeroMCTS, choose_move, visits_to_policy
+from src.alphazero_bot.model import ChessNet
 
 
 def load_model(checkpoint: Path | None, device: torch.device) -> ChessNet:
@@ -56,7 +56,7 @@ def play_one_game(mcts: AlphaZeroMCTS, temperature_moves: int, max_moves: int) -
 
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(description="Generate AlphaZero-style self-play games")
-    p.add_argument("--checkpoint", type=Path, default=Path("checkpoints/best.pt"))
+    p.add_argument("--model-type", type=str, required=True, choices=["pre", "post"])
     p.add_argument("--out-dir", type=Path, default=Path("data/selfplay"))
     p.add_argument("--games", type=int, default=16)
     p.add_argument("--simulations", type=int, default=128)
@@ -70,11 +70,22 @@ def parse_args() -> argparse.Namespace:
 
 
 def main() -> None:
-    args = parse_args()
+    args = parse_args()   # ✅ FIRST
+
+    BASE = Path("src/models")
+
+    if args.model_type == "pre":
+        checkpoint = BASE / "pre_2000.pt"
+        args.out_dir = Path("data/selfplay/pre")
+    elif args.model_type == "post":
+        checkpoint = BASE / "post_2020.pt"
+        args.out_dir = Path("data/selfplay/post")
+
     device = torch.device(args.device)
     args.out_dir.mkdir(parents=True, exist_ok=True)
 
-    model = load_model(args.checkpoint, device)
+    model = load_model(checkpoint, device)
+
     mcts = AlphaZeroMCTS(
         model=model,
         device=device,
@@ -84,6 +95,7 @@ def main() -> None:
         dirichlet_epsilon=args.dirichlet_epsilon,
     )
 
+    # (rest unchanged)
     ts = int(time.time())
     total_positions = 0
     wdl = {"1-0": 0, "0-1": 0, "1/2-1/2": 0}
