@@ -36,9 +36,14 @@ BASE_DIR = Path(__file__).resolve().parent
 
 PRE_2000_PATH = BASE_DIR / "src" / "models" / "pre_2000.pt"
 POST_2020_PATH = BASE_DIR / "src" / "models" / "post_2020.pt"
+PRE_2000_SP_PATH = BASE_DIR / "src" / "models" / "pre_2000_sp.pt"
+PRE_2000_SP_V2_PATH = BASE_DIR / "src" / "models" / "pre_2000_sp_v2.pt"
+
 
 PRE_2000_MODEL = load_model(PRE_2000_PATH)
 POST_2020_MODEL = load_model(POST_2020_PATH)
+PRE_2000_SP_MODEL = load_model(PRE_2000_SP_PATH)
+PRE_2000_SP_V2_MODEL = load_model(PRE_2000_SP_V2_PATH)
 
 
 # ── Inject new NN personalities ─────────────────────────
@@ -57,6 +62,21 @@ ALL_PERSONALITIES["post_2020_nn"] = type("P", (), {
     "description": "Trained on modern engine-influenced games",
     "color": "#e74c3c",
     "model": POST_2020_MODEL
+})()
+ALL_PERSONALITIES["pre_2000_sp_nn"] = type("P", (), {
+    "name": "Pre-2000 SP Bot",
+    "icon": "♟",
+    "description": "Trained on classical-era games (up to 1989) with selfplay",
+    "color": "#3498db",
+    "model": PRE_2000_SP_MODEL
+})()
+
+ALL_PERSONALITIES["pre_2000_sp_v2_nn"] = type("P", (), {
+    "name": "Pre-2000 SP V2 Bot",
+    "icon": "♟",
+    "description": "Trained on classical-era games (up to 1989) with selfplay",
+    "color": "#3498db",
+    "model": PRE_2000_SP_V2_MODEL
 })()
 
 # ═══════════════════════════════════════════════════════════════════════════════
