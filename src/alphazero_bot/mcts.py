@@ -48,7 +48,7 @@ class AlphaZeroMCTS:
     def _terminal_value(self, board: chess.Board) -> float:
         outcome = board.outcome(claim_draw=True)
         if outcome is None or outcome.winner is None:
-            return 0.0
+            return -0.05  # 🔥 draw penalty
         return 1.0 if outcome.winner == board.turn else -1.0
 
     @torch.no_grad()
@@ -90,6 +90,10 @@ class AlphaZeroMCTS:
         priors, value = self._evaluate(node.board)
         moves = list(priors.keys())
 
+        # 🔥 REPETITION PENALTY
+        if node.board.is_repetition(2):
+            value -= 0.2
+
         if add_root_noise and moves:
             noise = torch.distributions.dirichlet.Dirichlet(
                 torch.full((len(moves),), self.dirichlet_alpha, dtype=torch.float32)
@@ -111,7 +115,12 @@ class AlphaZeroMCTS:
 
         for child in node.children.values():
             u = self.c_puct * child.prior * sqrt_n / (1 + child.visits)
-            score = child.q + u
+
+            # 🔥 discourage repetition-heavy paths
+            penalty = -0.1 if child.board.is_repetition(2) else 0.0
+
+            score = child.q + u + penalty
+
             if score > best_score:
                 best_score = score
                 best_child = child
