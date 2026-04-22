@@ -24,7 +24,8 @@ from src.alphazero_bot.model import ChessNet
 @st.cache_resource
 def load_model(path):
     model = ChessNet()
-    checkpoint = torch.load(path, map_location="cpu")
+    checkpoint = torch.load(path, map_location="cpu", weights_only=False)
+
     model.load_state_dict(checkpoint["model_state"])
     model.eval()
     return model
@@ -36,14 +37,10 @@ BASE_DIR = Path(__file__).resolve().parent
 
 PRE_2000_PATH = BASE_DIR / "src" / "models" / "pre_2000.pt"
 POST_2020_PATH = BASE_DIR / "src" / "models" / "post_2020.pt"
-PRE_2000_SP_PATH = BASE_DIR / "src" / "models" / "pre_2000_sp.pt"
-PRE_2000_SP_V2_PATH = BASE_DIR / "src" / "models" / "pre_2000_sp_v2.pt"
 
 
 PRE_2000_MODEL = load_model(PRE_2000_PATH)
 POST_2020_MODEL = load_model(POST_2020_PATH)
-PRE_2000_SP_MODEL = load_model(PRE_2000_SP_PATH)
-PRE_2000_SP_V2_MODEL = load_model(PRE_2000_SP_V2_PATH)
 
 
 # ── Inject new NN personalities ─────────────────────────
@@ -62,21 +59,6 @@ ALL_PERSONALITIES["post_2020_nn"] = type("P", (), {
     "description": "Trained on modern engine-influenced games",
     "color": "#e74c3c",
     "model": POST_2020_MODEL
-})()
-ALL_PERSONALITIES["pre_2000_sp_nn"] = type("P", (), {
-    "name": "Pre-2000 SP Bot",
-    "icon": "♟",
-    "description": "Trained on classical-era games (up to 1989) with selfplay",
-    "color": "#3498db",
-    "model": PRE_2000_SP_MODEL
-})()
-
-ALL_PERSONALITIES["pre_2000_sp_v2_nn"] = type("P", (), {
-    "name": "Pre-2000 SP V2 Bot",
-    "icon": "♟",
-    "description": "Trained on classical-era games (up to 1989) with selfplay",
-    "color": "#3498db",
-    "model": PRE_2000_SP_V2_MODEL
 })()
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -427,11 +409,11 @@ PIECE_SYMBOLS = {
     (chess.KING,   chess.BLACK): "♚",
 }
 
-LIGHT_SQ = "#e8dcc8"
-DARK_SQ  = "#7b6e58"
-SEL_SQ   = "#5ca4e8"
-TARGET_SQ = "#6bcf6b"
-LAST_MOVE_SQ = "#c8b458"
+LIGHT_SQ = "#ffcf9f"
+DARK_SQ  = "#d18b47"
+SEL_SQ   = "#4db6ff"
+TARGET_SQ = "#5fe36f"
+LAST_MOVE_SQ = "#d7c14a"
 
 
 def render_interactive_board(board, engine, disabled=False):
@@ -440,6 +422,39 @@ def render_interactive_board(board, engine, disabled=False):
     selected = st.session_state.selected_square
     targets  = st.session_state.legal_targets
     last_mv  = engine.last_move
+
+    st.markdown(
+        """
+        <style>
+        .interactive-board-shell {
+            background: rgba(32, 28, 24, 0.9);
+            border-radius: 12px;
+            padding: 12px 12px 8px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+            width: fit-content;
+            margin: 0 auto;
+        }
+        .interactive-board-shell .board-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 56px;
+            color: rgba(255,255,255,0.85);
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+        .interactive-board-shell .file-label {
+            text-align: center;
+            color: rgba(255,255,255,0.85);
+            font-weight: 700;
+            font-size: 0.9rem;
+            padding-top: 6px;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+    st.markdown('<div class="interactive-board-shell">', unsafe_allow_html=True)
 
     ranks = range(7, -1, -1) if not flipped else range(8)
     files = range(8) if not flipped else range(7, -1, -1)
@@ -451,8 +466,7 @@ def render_interactive_board(board, engine, disabled=False):
         cols = st.columns([0.3] + [1]*8 + [0.3])
         # Rank label
         cols[0].markdown(
-            f"<div style='display:flex;align-items:center;justify-content:center;"
-            f"height:56px;color:#888;font-weight:600;font-size:0.85rem'>"
+            f"<div class='board-label'>"
             f"{rank+1}</div>",
             unsafe_allow_html=True
         )
@@ -473,7 +487,7 @@ def render_interactive_board(board, engine, disabled=False):
             elif last_mv and (sq == last_mv.from_square or sq == last_mv.to_square):
                 bg = LAST_MOVE_SQ
 
-            text_color = "#1a1a1a" if is_light else "#f0f0f0"
+            text_color = "#111111" if is_light else "#050505"
             if sq == selected or (targets and sq in targets):
                 text_color = "#ffffff"
 
@@ -495,12 +509,14 @@ def render_interactive_board(board, engine, disabled=False):
                     div[data-testid="column"]:nth-child({col_idx + 2}) button {{
                         background-color: {bg} !important;
                         color: {text_color} !important;
-                        font-size: 1.5rem !important;
-                        height: 56px !important;
-                        min-height: 56px !important;
+                        font-size: 2rem !important;
+                        font-weight: 700 !important;
+                        height: 58px !important;
+                        min-height: 58px !important;
                         padding: 0 !important;
-                        border-radius: 2px !important;
+                        border-radius: 0 !important;
                         border: none !important;
+                        box-shadow: none !important;
                     }}
                     </style>""",
                     unsafe_allow_html=True,
@@ -511,10 +527,10 @@ def render_interactive_board(board, engine, disabled=False):
     file_chars = "abcdefgh"
     for col_idx, file in enumerate(file_labels):
         footer_cols[col_idx + 1].markdown(
-            f"<div style='text-align:center;color:#888;font-weight:600;"
-            f"font-size:0.85rem'>{file_chars[file]}</div>",
+            f"<div class='file-label'>{file_chars[file]}</div>",
             unsafe_allow_html=True,
         )
+    st.markdown("</div>", unsafe_allow_html=True)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -613,7 +629,7 @@ def handle_square_click(sq, engine):
 
 def render_move_history(engine):
     """Display the move history in a formatted panel."""
-    moves = engine.get_move_history()
+    moves = [move.uci() for move in engine.board.move_stack]
     if not moves:
         st.markdown("*No moves yet.*")
         return
@@ -623,10 +639,10 @@ def render_move_history(engine):
         num = i // 2 + 1
         white_move = moves[i]
         black_move = moves[i + 1] if i + 1 < len(moves) else "..."
-        lines.append(f"**{num}.** {white_move}  {black_move}")
+        lines.append(f"{num}. {white_move}  {black_move}")
 
     st.markdown(
-        f'<div class="move-history">{" &nbsp;&nbsp; ".join(lines)}</div>',
+        f'<div class="move-history">{"<br>".join(lines)}</div>',
         unsafe_allow_html=True,
     )
 
@@ -665,6 +681,57 @@ def render_game_status(engine):
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
+#  Human move controls
+# ═══════════════════════════════════════════════════════════════════════════════
+
+def get_human_move_options(engine):
+    """Build alphabetically sorted legal-move options for the human player."""
+    board = engine.board
+    move_options = []
+
+    for move in board.legal_moves:
+        uci = move.uci()
+        move_options.append((f"{uci}  |  {board.san(move)}", uci))
+
+    return sorted(move_options, key=lambda option: option[1])
+
+
+def render_human_move_controls(engine, human_is_white, disabled=False):
+    """Render a compact sorted move picker for Human vs Bot."""
+    board = engine.board
+    human_to_move = (board.turn == chess.WHITE) == human_is_white
+
+    st.markdown('<div class="glass-card">', unsafe_allow_html=True)
+    st.markdown("#### 🎯 Your Move")
+
+    if disabled or board.is_game_over():
+        st.markdown("*This game is finished.*")
+    elif not human_to_move:
+        st.markdown("*Waiting for the bot to move...*")
+    else:
+        move_options = get_human_move_options(engine)
+        move_lookup = {uci: label for label, uci in move_options}
+
+        selected_uci = st.selectbox(
+            "Choose a legal move",
+            [uci for _, uci in move_options],
+            index=0,
+            format_func=lambda uci: move_lookup[uci],
+            key=f"human_move_select_{len(board.move_stack)}_{board.fen()}",
+        )
+
+        if st.button("♟ Play Move", use_container_width=True, key="human_play_move"):
+            if engine.make_move(selected_uci):
+                st.session_state.board = engine.board
+                st.session_state.selected_square = None
+                st.session_state.legal_targets = []
+                st.session_state.promotion_pending = None
+                st.rerun()
+
+    st.markdown('</div>', unsafe_allow_html=True)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
 #  ██  HUMAN VS BOT  ██
 # ═══════════════════════════════════════════════════════════════════════════════
 
@@ -689,27 +756,9 @@ def page_human_vs_bot():
     board_col, info_col = st.columns([3, 1.2])
 
     with board_col:
-        # Promotion dialog
-        if st.session_state.promotion_pending:
-            st.markdown("### ♛ Pawn Promotion — Choose a piece:")
-            pcols = st.columns(4)
-            promo_pieces = [
-                (chess.QUEEN, "♛ Queen"),
-                (chess.ROOK,  "♜ Rook"),
-                (chess.BISHOP,"♝ Bishop"),
-                (chess.KNIGHT,"♞ Knight"),
-            ]
-            for i, (ptype, label) in enumerate(promo_pieces):
-                with pcols[i]:
-                    if st.button(label, key=f"promo_{ptype}", use_container_width=True):
-                        uci = st.session_state.promotion_pending
-                        engine.make_move(uci, promotion_piece=ptype)
-                        st.session_state.board = engine.board
-                        st.session_state.promotion_pending = None
-                        st.rerun()
-
         game_over = render_game_status(engine)
-        render_interactive_board(board, engine, disabled=game_over)
+        render_svg_board(board, engine, size=480)
+        render_human_move_controls(engine, human_is_white, disabled=game_over)
 
     with info_col:
         st.markdown('<div class="glass-card">', unsafe_allow_html=True)
