@@ -9,6 +9,15 @@ import torch
 from src.alphazero_bot.encoding import N_MOVES, board_to_tensor, move_to_index
 
 
+# ─────────────────────────────────────────────
+# Tunable anti-draw parameters
+# ─────────────────────────────────────────────
+DRAW_PENALTY = -0.10          # draw outcome value
+REPETITION_PENALTY = 0.40     # penalty if position repeats
+SELECTION_REP_PENALTY = 0.25  # penalty applied during UCB selection
+PLY_PENALTY_COEFF = 0.001     # small penalty per ply to discourage long games
+
+
 @dataclass
 class Node:
     board: chess.Board
@@ -45,12 +54,18 @@ class AlphaZeroMCTS:
         self.root_prune_top_k = root_prune_top_k
         self.min_prior = min_prior
 
+    # ─────────────────────────────────────────────
+    # Terminal evaluation (stronger draw penalty)
+    # ─────────────────────────────────────────────
     def _terminal_value(self, board: chess.Board) -> float:
         outcome = board.outcome(claim_draw=True)
         if outcome is None or outcome.winner is None:
-            return -0.05  # 🔥 draw penalty
+            return DRAW_PENALTY
         return 1.0 if outcome.winner == board.turn else -1.0
 
+    # ─────────────────────────────────────────────
+    # Network evaluation
+    # ─────────────────────────────────────────────
     @torch.no_grad()
     def _evaluate(self, board: chess.Board) -> tuple[dict[chess.Move, float], float]:
         self.model.eval()
@@ -64,15 +79,16 @@ class AlphaZeroMCTS:
                 idx = move_to_index(board, mv)
             except ValueError:
                 continue
-            p = float(priors_all[idx].item())
-            priors.append((mv, p))
+            priors.append((mv, float(priors_all[idx].item())))
 
         if not priors:
             return {}, float(value.item())
 
         priors.sort(key=lambda x: x[1], reverse=True)
+
         if self.root_prune_top_k > 0:
             priors = priors[: self.root_prune_top_k]
+
         if self.min_prior > 0:
             priors = [x for x in priors if x[1] >= self.min_prior] or priors[:1]
 
@@ -83,31 +99,50 @@ class AlphaZeroMCTS:
 
         return {m: p / total for m, p in priors}, float(value.item())
 
+    # ─────────────────────────────────────────────
+    # Expand with strong anti-draw logic
+    # ─────────────────────────────────────────────
     def _expand(self, node: Node, add_root_noise: bool = False) -> float:
         if node.board.is_game_over(claim_draw=True):
             return self._terminal_value(node.board)
 
         priors, value = self._evaluate(node.board)
+
+        # 🔥 Strong repetition penalty
+        if node.board.is_repetition(2):
+            value -= REPETITION_PENALTY
+
+        # 🔥 Penalize long games slightly
+        ply_penalty = PLY_PENALTY_COEFF * node.board.fullmove_number
+        value -= ply_penalty
+
         moves = list(priors.keys())
 
-        # 🔥 REPETITION PENALTY
-        if node.board.is_repetition(2):
-            value -= 0.2
-
+        # Dirichlet noise (unchanged)
         if add_root_noise and moves:
             noise = torch.distributions.dirichlet.Dirichlet(
                 torch.full((len(moves),), self.dirichlet_alpha, dtype=torch.float32)
             ).sample()
-            for i, mv in enumerate(moves):
-                priors[mv] = (1.0 - self.dirichlet_epsilon) * priors[mv] + self.dirichlet_epsilon * float(noise[i])
 
+            for i, mv in enumerate(moves):
+                priors[mv] = (
+                    (1.0 - self.dirichlet_epsilon) * priors[mv]
+                    + self.dirichlet_epsilon * float(noise[i])
+                )
+
+        # Expand children
         for mv, prior in priors.items():
             nxt = node.board.copy(stack=False)
             nxt.push(mv)
-            node.children[mv] = Node(board=nxt, prior=prior, parent=node, move=mv)
+            node.children[mv] = Node(
+                board=nxt, prior=prior, parent=node, move=mv
+            )
 
         return value
 
+    # ─────────────────────────────────────────────
+    # Selection (penalize repetition-heavy branches)
+    # ─────────────────────────────────────────────
     def _select_child(self, node: Node) -> Node:
         sqrt_n = math.sqrt(max(1, node.visits))
         best_score = -float("inf")
@@ -116,8 +151,9 @@ class AlphaZeroMCTS:
         for child in node.children.values():
             u = self.c_puct * child.prior * sqrt_n / (1 + child.visits)
 
-            # 🔥 discourage repetition-heavy paths
-            penalty = -0.1 if child.board.is_repetition(2) else 0.0
+            penalty = 0.0
+            if child.board.is_repetition(2):
+                penalty -= SELECTION_REP_PENALTY
 
             score = child.q + u + penalty
 
@@ -127,15 +163,24 @@ class AlphaZeroMCTS:
 
         if best_child is None:
             raise RuntimeError("No child found during selection")
+
         return best_child
 
+    # ─────────────────────────────────────────────
+    # Backprop
+    # ─────────────────────────────────────────────
     def _backprop(self, path: list[Node], value: float) -> None:
         for node in reversed(path):
             node.visits += 1
             node.value_sum += value
             value = -value
 
-    def run(self, board: chess.Board, add_root_noise: bool = False) -> tuple[dict[chess.Move, int], dict[chess.Move, float]]:
+    # ─────────────────────────────────────────────
+    # Run MCTS
+    # ─────────────────────────────────────────────
+    def run(
+        self, board: chess.Board, add_root_noise: bool = False
+    ) -> tuple[dict[chess.Move, int], dict[chess.Move, float]]:
         root = Node(board=board.copy(stack=False), prior=1.0)
         self._expand(root, add_root_noise=add_root_noise)
 
@@ -152,9 +197,13 @@ class AlphaZeroMCTS:
 
         visits = {mv: ch.visits for mv, ch in root.children.items()}
         priors = {mv: ch.prior for mv, ch in root.children.items()}
+
         return visits, priors
 
 
+# ─────────────────────────────────────────────
+# Move selection
+# ─────────────────────────────────────────────
 def choose_move(visits: dict[chess.Move, int], temperature: float = 1.0) -> chess.Move:
     if not visits:
         raise RuntimeError("No visit counts to choose from")
@@ -171,8 +220,12 @@ def choose_move(visits: dict[chess.Move, int], temperature: float = 1.0) -> ches
     return moves[idx]
 
 
+# ─────────────────────────────────────────────
+# Policy target
+# ─────────────────────────────────────────────
 def visits_to_policy(board: chess.Board, visits: dict[chess.Move, int]) -> torch.Tensor:
     pi = torch.zeros(N_MOVES, dtype=torch.float32)
+
     if not visits:
         return pi
 
@@ -190,4 +243,5 @@ def visits_to_policy(board: chess.Board, visits: dict[chess.Move, int]) -> torch
     s = float(pi.sum().item())
     if s > 0:
         pi /= s
+
     return pi
