@@ -1,0 +1,33 @@
+M8N2 Puzzle Results
+Criterion: only the first move must match the mate-in-2 key move.
+Total puzzles: 221
+
+Model: pre_2000
+Solved: 10 / 221 (4.5%)
+White to move: 6 / 166 (3.6%)
+Black to move: 4 / 55 (7.3%)
+Solved puzzles:
+- James Mason vs Georg Marco, Leipzig, 1894: g2g1
+- Nicolas Ticoulat vs Andor Lilienthal, Sitges, 1934: d4b5
+- Samuel Reshevsky vs Yasuji Matsumoto, Siegen, 1970: h8g7
+- Michael Adams vs Luis Comas Fabrego, Adelaide, 1988: e7f7
+- Stephen Lukey vs solomon Celis, Dresden, 2008: d7g4
+- Dmitry Bocharov vs Dmitry Svetushkin, Budva, 2009: f3f2
+- Alexander Grischuk vs Baadur Jobava, Khanty Mansyisk, 2009: h1h6
+- Badr-Eddine Khelfallah vs Euler da Costa Moreira, Khanty Mansyisk, 2010: e6h6
+- Nana Dzagnidze vs Gulnar Mammadova, Gaziantep, 3/2/2012: h7h5
+- Maria Kursova vs Tijana Blagojevic, Belgrade, 7/23/2013: g6g7
+
+Model: post_2020
+Solved: 8 / 221 (3.6%)
+White to move: 6 / 166 (3.6%)
+Black to move: 2 / 55 (3.6%)
+Solved puzzles:
+- Enrico Paoli vs Jan Foltys, Trencianske Teplice, 1949: c6b5
+- Posch vs Derr, Vienna, 1958: g4g7
+- Dmitri Reinderman vs Harmen Jonkman, Nijmegen, 1992: d8f8
+- Ludwig Deutsch vs B Zambo, Zalakaros, 1999: g5f7
+- Camilla Baginskaite vs Ana-Cristina Calotescu, Turin, 2006: e1e8
+- Alexander Grischuk vs Baadur Jobava, Khanty Mansyisk, 2009: h1h6
+- Badr-Eddine Khelfallah vs Euler da Costa Moreira, Khanty Mansyisk, 2010: e6h6
+- Aleksa Strikovic vs Jasem Alhuwar, Paris, 7/7/2012: a6d3

@@ -1,0 +1,118 @@
+M8N1 Puzzle Results
+Criterion: only the first move must match the mate-in-1 key move.
+Total puzzles in source: 5012
+Puzzles evaluated: 1000
+
+Model: pre_2000
+Solved: 138 / 1000 (13.8%)
+White to move: 138 / 1000 (13.8%)
+Black to move: 0 / 0 (0.0%)
+Solved puzzles:
+- m8n1.csv row 3: d5g8
+- m8n1.csv row 13: e8f7
+- m8n1.csv row 17: a7a8q
+- m8n1.csv row 22: a5d8
+- m8n1.csv row 26: d8c7
+- m8n1.csv row 27: f7f8q
+- m8n1.csv row 51: h7c2
+- m8n1.csv row 55: f2f6
+- m8n1.csv row 61: e5h5
+- m8n1.csv row 64: b6d6
+- m8n1.csv row 70: e6e8
+- m8n1.csv row 76: g6h4
+- m8n1.csv row 77: g3g8
+- m8n1.csv row 78: c4c5
+- m8n1.csv row 81: g4f4
+- m8n1.csv row 83: c7e7
+- m8n1.csv row 85: b1b7
+- m8n1.csv row 86: e7h7
+- m8n1.csv row 91: h8f7
+- m8n1.csv row 98: d7d8
+- m8n1.csv row 102: f4f5
+- m8n1.csv row 110: f3h5
+- m8n1.csv row 124: c7c8
+- m8n1.csv row 151: h5g6
+- m8n1.csv row 156: e1g1
+- m8n1.csv row 165: g4g6
+- m8n1.csv row 168: h1a1
+- m8n1.csv row 175: d6d8
+- m8n1.csv row 192: b4b8
+- m8n1.csv row 204: a7a8
+- m8n1.csv row 205: e4e5
+- m8n1.csv row 209: a3b4
+- m8n1.csv row 220: e7a7
+- m8n1.csv row 224: e8f8
+- m8n1.csv row 232: d5d6
+- m8n1.csv row 234: g7g8
+- m8n1.csv row 238: g5g2
+- m8n1.csv row 240: b2b6
+- m8n1.csv row 241: f8a8
+- m8n1.csv row 263: d1d8
+- m8n1.csv row 268: h4f6
+- m8n1.csv row 269: f3c6
+- m8n1.csv row 271: f7c7
+- m8n1.csv row 288: f6f7
+- m8n1.csv row 291: e6e8
+- m8n1.csv row 294: g3b8
+- m8n1.csv row 296: d6d5
+- m8n1.csv row 303: c4g8
+- m8n1.csv row 304: d4e5
+- m8n1.csv row 308: g5e7
+... and 88 more solved puzzles
+
+Model: post_2020
+Solved: 214 / 1000 (21.4%)
+White to move: 214 / 1000 (21.4%)
+Black to move: 0 / 0 (0.0%)
+Solved puzzles:
+- m8n1.csv row 3: d5g8
+- m8n1.csv row 9: e6f7
+- m8n1.csv row 10: a6c8
+- m8n1.csv row 13: e8f7
+- m8n1.csv row 17: a7a8q
+- m8n1.csv row 18: d1d3
+- m8n1.csv row 23: b3b6
+- m8n1.csv row 26: d8c7
+- m8n1.csv row 27: f7f8q
+- m8n1.csv row 35: e5c7
+- m8n1.csv row 36: g7g8q
+- m8n1.csv row 40: e5e6
+- m8n1.csv row 44: g1g6
+- m8n1.csv row 47: f6f7
+- m8n1.csv row 51: h7c2
+- m8n1.csv row 53: f6g7
+- m8n1.csv row 54: h7f7
+- m8n1.csv row 56: c8c4
+- m8n1.csv row 61: e5h5
+- m8n1.csv row 64: b6d6
+- m8n1.csv row 67: h7c7
+- m8n1.csv row 70: e6e8
+- m8n1.csv row 73: g8e8
+- m8n1.csv row 76: g6h4
+- m8n1.csv row 78: c4c5
+- m8n1.csv row 81: g4f4
+- m8n1.csv row 83: c7e7
+- m8n1.csv row 84: e4g4
+- m8n1.csv row 86: e7h7
+- m8n1.csv row 93: g4g7
+- m8n1.csv row 96: c7c8
+- m8n1.csv row 97: d1d6
+- m8n1.csv row 99: h8e8
+- m8n1.csv row 101: h6h8
+- m8n1.csv row 103: b8d8
+- m8n1.csv row 106: d8f6
+- m8n1.csv row 108: g4g7
+- m8n1.csv row 110: f3h5
+- m8n1.csv row 111: c7c8
+- m8n1.csv row 119: c6a8
+- m8n1.csv row 131: h3h8
+- m8n1.csv row 135: e5c7
+- m8n1.csv row 138: b4b8
+- m8n1.csv row 148: d7a7
+- m8n1.csv row 151: h5g6
+- m8n1.csv row 153: g3h4
+- m8n1.csv row 157: g5g6
+- m8n1.csv row 165: g4g6
+- m8n1.csv row 166: g8g6
+- m8n1.csv row 172: d1h5
+... and 164 more solved puzzles

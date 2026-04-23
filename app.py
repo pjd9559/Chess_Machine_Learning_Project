@@ -6,13 +6,17 @@ Modes:
   • Human vs Bot — play against any of 5 NN personalities
   • Bot vs Bot   — watch two personalities play each other
   • Tournament   — round-robin competition with live standings
+  • Tests        — view the project test workspace
 """
 
 import streamlit as st
+import altair as alt
 import chess
 import time
 import itertools
 import base64
+import re
+from pathlib import Path
 from src.engine import GameEngine
 from src.personalities import ALL_PERSONALITIES, get_personality
 from src.utils import render_board_svg
@@ -30,10 +34,8 @@ def load_model(path):
     model.eval()
     return model
 
-
-from pathlib import Path
-
 BASE_DIR = Path(__file__).resolve().parent
+TESTS_DIR = BASE_DIR / "tests"
 
 PRE_2000_PATH = BASE_DIR / "src" / "models" / "pre_2000.pt"
 POST_2020_PATH = BASE_DIR / "src" / "models" / "post_2020.pt"
@@ -292,9 +294,9 @@ with st.sidebar:
     # Mode selector
     mode = st.radio(
         "🎮 **Game Mode**",
-        ["Human vs Bot", "Bot vs Bot", "Tournament"],
+        ["Human vs Bot", "Bot vs Bot", "Tournament", "Tests"],
         key="mode_radio",
-        index=["Human vs Bot", "Bot vs Bot", "Tournament"].index(st.session_state.mode),
+        index=["Human vs Bot", "Bot vs Bot", "Tournament", "Tests"].index(st.session_state.mode),
     )
     st.session_state.mode = mode
 
@@ -360,6 +362,10 @@ with st.sidebar:
         st.session_state.move_delay = st.slider(
             "⏱ Move delay (seconds)", 0.1, 3.0, 0.5, 0.1, key="tourn_delay_slider"
         )
+
+    elif mode == "Tests":
+        st.markdown("### 🧪 Tests")
+        st.markdown("Browse the test workspace for this project.")
 
     st.markdown("---")
 
@@ -981,6 +987,102 @@ def run_tournament(matchups):
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
+#  ██  TESTS PAGE  ██
+# ═══════════════════════════════════════════════════════════════════════════════
+
+def page_tests():
+    st.markdown(
+        '<div class="glass-card">'
+        '<h2 style="margin:0">🧪 Tests</h2>'
+        '<p style="margin:0.3rem 0 0;opacity:0.7">'
+        'Latest generated puzzle-evaluation results.</p>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
+
+    st.markdown("### 📊 Latest Puzzle Results")
+    result_files = sorted(TESTS_DIR.glob("*_results.txt"))
+    if result_files:
+        for result_file in result_files:
+            raw_text = result_file.read_text()
+            chart_rows = []
+            current_model = None
+
+            for line in raw_text.splitlines():
+                model_match = re.match(r"Model:\s+(.+)", line)
+                if model_match:
+                    current_model = model_match.group(1).strip()
+                    continue
+
+                solved_match = re.match(r"Solved:\s+(\d+)\s+/\s+(\d+)\s+\(([\d.]+)%\)", line)
+                if solved_match and current_model:
+                    solved, total, accuracy = solved_match.groups()
+                    chart_rows.append(
+                        {
+                            "Model": current_model,
+                            "Accuracy": float(accuracy),
+                            "Solved": int(solved),
+                            "Total": int(total),
+                            "Label": f"{accuracy}% ({solved}/{total})",
+                        }
+                    )
+
+            st.markdown(f"#### `{result_file.name}`")
+
+            if chart_rows:
+                base = alt.Chart(alt.Data(values=chart_rows))
+
+                bars = (
+                    base
+                    .mark_bar(cornerRadiusTopLeft=6, cornerRadiusTopRight=6)
+                    .encode(
+                        y=alt.Y(
+                            "Model:N",
+                            title=None,
+                            sort=["pre_2000", "post_2020"],
+                        ),
+                        x=alt.X("Accuracy:Q", title="Accuracy (%)", scale=alt.Scale(domain=[0, 30])),
+                        color=alt.Color(
+                            "Model:N",
+                            scale=alt.Scale(
+                                domain=["pre_2000", "post_2020"],
+                                range=["#3498db", "#e74c3c"],
+                            ),
+                            legend=None,
+                        ),
+                        tooltip=[
+                            alt.Tooltip("Model:N"),
+                            alt.Tooltip("Solved:Q"),
+                            alt.Tooltip("Total:Q"),
+                            alt.Tooltip("Accuracy:Q", format=".1f"),
+                        ],
+                    )
+                )
+
+                labels = (
+                    base
+                    .mark_text(align="left", baseline="middle", dx=6, color="#e0e0e0")
+                    .encode(
+                        y=alt.Y(
+                            "Model:N",
+                            title=None,
+                            sort=["pre_2000", "post_2020"],
+                        ),
+                        x=alt.X("Accuracy:Q", scale=alt.Scale(domain=[0, 30])),
+                        text="Label:N",
+                    )
+                )
+
+                chart = (bars + labels).properties(height=180)
+                st.altair_chart(chart, use_container_width=True)
+
+            with st.expander(f"Show details for {result_file.name}", expanded=False):
+                st.code(raw_text, language="text")
+    else:
+        st.markdown("*No generated results yet. Run `tests/eval_m8n2.py` first.*")
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
 #  Main routing
 # ═══════════════════════════════════════════════════════════════════════════════
 
@@ -990,3 +1092,5 @@ elif st.session_state.mode == "Bot vs Bot":
     page_bot_vs_bot()
 elif st.session_state.mode == "Tournament":
     page_tournament()
+elif st.session_state.mode == "Tests":
+    page_tests()
