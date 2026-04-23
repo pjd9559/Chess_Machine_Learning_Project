@@ -12,10 +12,10 @@ from src.alphazero_bot.encoding import N_MOVES, board_to_tensor, move_to_index
 # ─────────────────────────────────────────────
 # Tunable anti-draw parameters
 # ─────────────────────────────────────────────
-DRAW_PENALTY = -0.10          # draw outcome value
-REPETITION_PENALTY = 0.40     # penalty if position repeats
-SELECTION_REP_PENALTY = 0.25  # penalty applied during UCB selection
-PLY_PENALTY_COEFF = 0.001     # small penalty per ply to discourage long games
+DRAW_PENALTY = -0.50          # draw outcome value
+REPETITION_PENALTY = 1.0     # penalty if position repeats
+SELECTION_REP_PENALTY = 0.70  # penalty applied during UCB selection
+PLY_PENALTY_COEFF = 0.002     # small penalty per ply to discourage long games
 
 
 @dataclass
@@ -97,7 +97,12 @@ class AlphaZeroMCTS:
             uniform = 1.0 / len(priors)
             return {m: uniform for m, _ in priors}, float(value.item())
 
-        return {m: p / total for m, p in priors}, float(value.item())
+        raw_value = float(value.item())
+
+        # 🔥 Value sharpening
+        value = math.tanh(3.0 * raw_value)
+
+        return {m: p / total for m, p in priors}, value
 
     # ─────────────────────────────────────────────
     # Expand with strong anti-draw logic
@@ -111,7 +116,7 @@ class AlphaZeroMCTS:
         # 🔥 Strong repetition penalty
         if node.board.is_repetition(2):
             value -= REPETITION_PENALTY
-
+        
         # 🔥 Penalize long games slightly
         ply_penalty = PLY_PENALTY_COEFF * node.board.fullmove_number
         value -= ply_penalty

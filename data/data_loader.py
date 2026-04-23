@@ -12,7 +12,7 @@ These loaders are designed to be used in a future training pipeline.
 import os
 import csv
 import chess.pgn
-from typing import Generator
+from typing import Generator, Optional
 
 
 DATA_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -20,9 +20,9 @@ DATA_DIR = os.path.dirname(os.path.abspath(__file__))
 
 def load_pgn_games(
     pgn_path: str,
-    max_games: int | None = None,
-    min_year: int | None = None,
-    max_year: int | None = None,
+    max_games: Optional[int] = None,
+    min_year: Optional[int] = None,
+    max_year: Optional[int] = None,
 ) -> Generator:
     """
     Generator that yields chess.pgn.Game objects from a PGN file.
@@ -59,7 +59,7 @@ def load_pgn_games(
                 break
 
 
-def load_csv_games(csv_path: str, max_games: int | None = None) -> Generator:
+def load_csv_games(csv_path: str, max_games: Optional[int] = None) -> Generator:
     """
     Generator that yields rows (as dicts) from a CSV chess dataset.
     """
@@ -146,3 +146,5 @@ def load_kaggle_gm_games(path: str | None = None, max_games: int = 1000):
         print("[data_loader] Download from https://www.kaggle.com/datasets/dimitrioskourtikakis/gm-games-chesscom")
         return []
     return load_csv_games(path, max_games=max_games)
+
+
