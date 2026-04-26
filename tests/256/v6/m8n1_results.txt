@@ -1,0 +1,44 @@
+Model generation: v6
+M8N1 Puzzle Results
+Criterion: only the first move must match the mate-in-1 key move.
+Total puzzles in source: 5012
+Puzzles evaluated: 100
+
+Model: pre_2000_final_v6
+Solved: 8 / 100 (8.0%)
+White to move: 8 / 100 (8.0%)
+Black to move: 0 / 0 (0.0%)
+Solved puzzles:
+- m8n1.csv row 27: f7f8q
+- m8n1.csv row 36: g7g8q
+- m8n1.csv row 46: f4h4
+- m8n1.csv row 48: a2h2
+- m8n1.csv row 71: g1h1
+- m8n1.csv row 76: g6h4
+- m8n1.csv row 78: c4c5
+- m8n1.csv row 86: e7h7
+
+Model: post_2010_final_v6
+Solved: 19 / 100 (19.0%)
+White to move: 19 / 100 (19.0%)
+Black to move: 0 / 0 (0.0%)
+Solved puzzles:
+- m8n1.csv row 3: d5g8
+- m8n1.csv row 4: f7b7
+- m8n1.csv row 14: h4f4
+- m8n1.csv row 17: a7a8q
+- m8n1.csv row 24: e2b5
+- m8n1.csv row 27: f7f8q
+- m8n1.csv row 33: e3b3
+- m8n1.csv row 36: g7g8q
+- m8n1.csv row 41: d8g8
+- m8n1.csv row 44: g1g6
+- m8n1.csv row 46: f4h4
+- m8n1.csv row 51: h7c2
+- m8n1.csv row 61: e5h5
+- m8n1.csv row 66: d8e8
+- m8n1.csv row 76: g6h4
+- m8n1.csv row 81: g4f4
+- m8n1.csv row 83: c7e7
+- m8n1.csv row 86: e7h7
+- m8n1.csv row 88: c5c8

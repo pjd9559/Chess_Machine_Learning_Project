@@ -19,6 +19,8 @@ GENERATED_REPORTS_DIR = ROOT_DIR / "generated_reports"
 MODEL_PATHS = {
     "pre_2000": ROOT_DIR / "src" / "models" / "pre_2000.pt",
     "post_2020": ROOT_DIR / "src" / "models" / "post_2020.pt",
+    "pre_2000_final_v6": ROOT_DIR / "src" / "models" / "pre_2000_final_v6.pt",
+    "post_2010_final_v6": ROOT_DIR / "src" / "models" / "post_2010_final_v6.pt",
     "pre_2000_ultra_final": ROOT_DIR / "src" / "models" / "pre_2000_ultra_final.pt",
     "post_2010_ultra_final": ROOT_DIR / "src" / "models" / "post_2010_ultra_final.pt",
 }

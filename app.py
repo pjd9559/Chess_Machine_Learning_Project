@@ -41,12 +41,16 @@ TESTS_RESULTS_DIR = TESTS_DIR / "256"
 
 PRE_2000_PATH = BASE_DIR / "src" / "models" / "pre_2000.pt"
 POST_2020_PATH = BASE_DIR / "src" / "models" / "post_2020.pt"
+PRE_2000_V6_PATH = BASE_DIR / "src" / "models" / "pre_2000_final_v6.pt"
+POST_2010_V6_PATH = BASE_DIR / "src" / "models" / "post_2010_final_v6.pt"
 PRE_2000_ULTRA_FINAL_PATH = BASE_DIR / "src" / "models" / "pre_2000_ultra_final.pt"
 POST_2010_ULTRA_FINAL_PATH = BASE_DIR / "src" / "models" / "post_2010_ultra_final.pt"
 
 
 PRE_2000_MODEL = load_model(PRE_2000_PATH)
 POST_2020_MODEL = load_model(POST_2020_PATH)
+PRE_2000_V6_MODEL = load_model(PRE_2000_V6_PATH)
+POST_2010_V6_MODEL = load_model(POST_2010_V6_PATH)
 PRE_2000_ULTRA_FINAL_MODEL = load_model(PRE_2000_ULTRA_FINAL_PATH)
 POST_2010_ULTRA_FINAL_MODEL = load_model(POST_2010_ULTRA_FINAL_PATH)
 
@@ -67,6 +71,22 @@ ALL_PERSONALITIES["post_2020_nn"] = type("P", (), {
     "description": "Trained on modern engine-influenced games",
     "color": "#e74c3c",
     "model": POST_2020_MODEL
+})()
+
+ALL_PERSONALITIES["pre_2000_v6_nn"] = type("P", (), {
+    "name": "Pre-2000 v6 Bot",
+    "icon": "♜",
+    "description": "Version 6 checkpoint trained on classical-era games",
+    "color": "#5dade2",
+    "model": PRE_2000_V6_MODEL
+})()
+
+ALL_PERSONALITIES["post_2010_v6_nn"] = type("P", (), {
+    "name": "Post-2010 v6 Bot",
+    "icon": "🔥",
+    "description": "Version 6 checkpoint trained on modern games",
+    "color": "#ff6b6b",
+    "model": POST_2010_V6_MODEL
 })()
 
 ALL_PERSONALITIES["pre_2000_ultra_final_nn"] = type("P", (), {
@@ -284,8 +304,11 @@ def init_session_state():
         "tournament_current_game": "",
         "promotion_pending": None,
         "move_delay": 0.8,
-        "tournament_pair": "old",
+        "tournament_pair": "v6",
         "tournament_num_games": 8,
+        "human_mcts_simulations": 256,
+        "bot_vs_bot_mcts_simulations": 256,
+        "tournament_mcts_simulations": 256,
     }
     for key, val in defaults.items():
         if key not in st.session_state:
@@ -333,13 +356,18 @@ with st.sidebar:
     nn_personality_keys = [
         "pre_2000_nn",
         "post_2020_nn",
+        "pre_2000_v6_nn",
+        "post_2010_v6_nn",
     ]
     nn_personality_options = {k: personality_options[k] for k in nn_personality_keys}
 
     if mode == "Tournament":
         st.markdown("### 🏆 Tournament Settings")
-        st.session_state.tournament_pair = "old"
-        st.markdown("Direct matchup between the pre-2000 and post-2020 bots.")
+        current_pair = st.session_state.get("tournament_pair", "v6")
+        if current_pair == "v6":
+            st.markdown("Direct matchup between the pre-2000 v6 and post-2010 v6 bots.")
+        else:
+            st.markdown("Direct matchup between the pre-2000 and post-2020 bots.")
         st.session_state.move_delay = st.slider(
             "⏱ Move delay (seconds)", 0.1, 3.0, 0.5, 0.1, key="tourn_delay_slider"
         )
@@ -714,11 +742,16 @@ def render_human_move_controls(engine, human_is_white, disabled=False):
 def page_human_vs_bot():
     engine = st.session_state.engine
     board  = engine.board
-    nn_personality_keys = ["pre_2000_nn", "post_2020_nn"]
+    nn_personality_keys = [
+        "pre_2000_nn",
+        "post_2020_nn",
+        "pre_2000_v6_nn",
+        "post_2010_v6_nn",
+    ]
     if st.session_state.get("black_personality") not in nn_personality_keys:
-        st.session_state.black_personality = "post_2020_nn"
+        st.session_state.black_personality = "pre_2000_v6_nn"
     if st.session_state.get("white_personality") not in nn_personality_keys:
-        st.session_state.white_personality = "pre_2000_nn"
+        st.session_state.white_personality = "pre_2000_v6_nn"
 
     # Header
     human_is_white = st.session_state.human_color == "white"
@@ -762,9 +795,12 @@ def page_human_vs_bot():
             nn_personality_keys,
             format_func=lambda k: f"{get_personality(k).icon} {get_personality(k).name}",
             key="bot_personality_sel",
-            index=nn_personality_keys.index(st.session_state.get(bot_key, "post_2020_nn")) if st.session_state.get(bot_key, "post_2020_nn") in nn_personality_keys else 1,
+            index=nn_personality_keys.index(st.session_state.get(bot_key, "pre_2000_v6_nn")) if st.session_state.get(bot_key, "pre_2000_v6_nn") in nn_personality_keys else 2,
         )
         st.session_state[bot_key] = selected_bot
+        st.session_state.human_mcts_simulations = st.slider(
+            "MCTS simulations", 1, 512, st.session_state.human_mcts_simulations, 1, key="human_mcts_slider"
+        )
         p = get_personality(selected_bot)
         st.markdown(
             f'<div class="personality-card" style="border-color:{p.color}">'
@@ -804,7 +840,7 @@ def page_human_vs_bot():
         if is_bot_turn and not board.is_game_over():
             with st.spinner(f"{bot_p.icon} {bot_p.name} is thinking..."):
                 time.sleep(0.5)
-                engine.bot_move(st.session_state[bot_key])
+                engine.bot_move(st.session_state[bot_key], simulations=st.session_state.human_mcts_simulations)
                 st.session_state.board = engine.board
                 st.rerun()
 
@@ -816,11 +852,26 @@ def page_human_vs_bot():
 def page_bot_vs_bot():
     engine = st.session_state.engine
     board  = engine.board
-    nn_personality_keys = ["pre_2000_nn", "post_2020_nn"]
+    nn_personality_keys = [
+        "pre_2000_nn",
+        "post_2020_nn",
+        "pre_2000_v6_nn",
+        "post_2010_v6_nn",
+    ]
+    if not st.session_state.get("bot_vs_bot_defaults_initialized"):
+        st.session_state.white_personality = "pre_2000_v6_nn"
+        st.session_state.black_personality = "post_2010_v6_nn"
+        st.session_state.white_bot_sel = "pre_2000_v6_nn"
+        st.session_state.black_bot_sel = "post_2010_v6_nn"
+        st.session_state.bot_vs_bot_defaults_initialized = True
     if st.session_state.get("white_personality") not in nn_personality_keys:
-        st.session_state.white_personality = "pre_2000_nn"
+        st.session_state.white_personality = "pre_2000_v6_nn"
     if st.session_state.get("black_personality") not in nn_personality_keys:
-        st.session_state.black_personality = "post_2020_nn"
+        st.session_state.black_personality = "post_2010_v6_nn"
+    if st.session_state.get("white_bot_sel") not in nn_personality_keys:
+        st.session_state.white_bot_sel = st.session_state.white_personality
+    if st.session_state.get("black_bot_sel") not in nn_personality_keys:
+        st.session_state.black_bot_sel = st.session_state.black_personality
 
     w_p = get_personality(st.session_state.white_personality)
     b_p = get_personality(st.session_state.black_personality)
@@ -862,8 +913,8 @@ def page_bot_vs_bot():
             index=nn_personality_keys.index(st.session_state.black_personality),
         )
         st.session_state.black_personality = black_sel
-        st.session_state.move_delay = st.slider(
-            "⏱ Move delay (seconds)", 0.1, 3.0, st.session_state.move_delay, 0.1, key="delay_slider"
+        st.session_state.bot_vs_bot_mcts_simulations = st.slider(
+            "MCTS simulations", 1, 512, st.session_state.bot_vs_bot_mcts_simulations, 1, key="bvb_mcts_slider"
         )
         ctrl_cols = st.columns(3)
         with ctrl_cols[0]:
@@ -878,7 +929,7 @@ def page_bot_vs_bot():
             if st.button("⏭ Step", use_container_width=True, key="bvb_step"):
                 if not board.is_game_over():
                     p_key = st.session_state.white_personality if board.turn == chess.WHITE else st.session_state.black_personality
-                    engine.bot_move(p_key)
+                    engine.bot_move(p_key, simulations=st.session_state.bot_vs_bot_mcts_simulations)
                     st.session_state.board = engine.board
                     st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
@@ -888,8 +939,7 @@ def page_bot_vs_bot():
         p_key = st.session_state.white_personality if board.turn == chess.WHITE else st.session_state.black_personality
         p = get_personality(p_key)
         with st.spinner(f"{p.icon} {p.name} is thinking..."):
-            time.sleep(st.session_state.move_delay)
-            engine.bot_move(p_key)
+            engine.bot_move(p_key, simulations=st.session_state.bot_vs_bot_mcts_simulations)
             st.session_state.board = engine.board
             st.rerun()
 
@@ -901,10 +951,28 @@ def page_bot_vs_bot():
 def page_tournament():
     tournament_pairs = {
         "old": ("pre_2000_nn", "post_2020_nn"),
+        "v6": ("pre_2000_v6_nn", "post_2010_v6_nn"),
     }
-    names = list(tournament_pairs["old"])
+    tournament_pair_options = {
+        "v6": "V6 Models",
+        "old": "Old Models",
+    }
+    pair_key = st.radio(
+        "Model Pair",
+        list(tournament_pair_options),
+        index=list(tournament_pair_options).index(st.session_state.get("tournament_pair", "v6")),
+        format_func=lambda key: tournament_pair_options[key],
+        horizontal=True,
+        key="tournament_pair_page_selector",
+    )
+    st.session_state.tournament_pair = pair_key
+    pair_key = st.session_state.get("tournament_pair", "v6")
+    names = list(tournament_pairs.get(pair_key, tournament_pairs["v6"]))
     st.session_state.tournament_num_games = st.slider(
         "Games to play", 1, 100, st.session_state.get("tournament_num_games", 8), 1, key="tourn_num_games_slider"
+    )
+    st.session_state.tournament_mcts_simulations = st.slider(
+        "MCTS simulations", 1, 512, st.session_state.tournament_mcts_simulations, 1, key="tourn_mcts_slider"
     )
     num_games = st.session_state.tournament_num_games
     matchups = [
@@ -916,7 +984,7 @@ def page_tournament():
         '<div class="glass-card">'
         '<h2 style="margin:0">🏆 Tournament</h2>'
         '<p style="margin:0.3rem 0 0;opacity:0.7">'
-        f'Direct evaluation match between the pre-2000 and post-2020 bots over {num_games} game(s).</p>'
+        f'Direct evaluation match between {get_personality(names[0]).name} and {get_personality(names[1]).name} over {num_games} game(s).</p>'
         '</div>',
         unsafe_allow_html=True,
     )
@@ -1008,7 +1076,7 @@ def run_tournament(matchups):
         move_count = 0
         while not engine.board.is_game_over() and move_count < max_moves:
             p_key = w_name if engine.board.turn == chess.WHITE else b_name
-            engine.bot_move(p_key)
+            engine.bot_move(p_key, simulations=st.session_state.tournament_mcts_simulations)
             move_count += 1
 
         # Record result
@@ -1056,13 +1124,28 @@ def render_metric_row(items):
 
 
 def render_reports():
-    model_pair = "old"
+    report_pair_options = {
+        "v6": "V6 Models",
+        "old": "Old Models",
+    }
+    model_pair = st.radio(
+        "Style behavior pair",
+        list(report_pair_options),
+        index=list(report_pair_options).index(st.session_state.get("style_report_pair_selector", "v6")),
+        format_func=lambda key: report_pair_options[key],
+        horizontal=True,
+        key="style_report_pair_selector",
+    )
+    pair_descriptions = {
+        "old": "Style profiling for the pre-2000 and post-2020 model pair.",
+        "v6": "Style profiling for the pre-2000 v6 and post-2010 v6 model pair.",
+    }
 
     st.markdown(
         '<div class="glass-card">'
         '<h2 style="margin:0">📚 Reports</h2>'
         '<p style="margin:0.3rem 0 0;opacity:0.7">'
-        'Style profiling for the pre-2000 and post-2020 model pair.</p>'
+        f'{pair_descriptions[model_pair]}</p>'
         '</div>',
         unsafe_allow_html=True,
     )
@@ -1073,7 +1156,7 @@ def render_reports():
         st.markdown("### Style Behavior Report")
         style_controls = st.columns(3)
         style_games = style_controls[0].slider("Head-to-head games", 1, 100, 30, 1)
-        style_sims = style_controls[1].slider("MCTS simulations", 1, 256, 12)
+        style_sims = style_controls[1].slider("MCTS simulations", 1, 512, 12)
         style_max_moves = style_controls[2].slider("Max plies", 40, 120, 80, 10)
         if st.button("Run style behavior analysis", key="run_style_report"):
             st.session_state["show_style_report"] = True
@@ -1156,12 +1239,12 @@ def page_tests():
         unsafe_allow_html=True,
     )
 
-    generation_order = ["old", "v1", "v2", "ultral_final"]
+    generation_order = ["old", "v1", "ultral_final", "v6"]
     generation_display_names = {
         "old": "main",
         "v1": "v1",
-        "v2": "v2",
         "ultral_final": "v3",
+        "v6": "v6",
     }
     generation_dirs = [TESTS_RESULTS_DIR / name for name in generation_order]
     result_files = [path for directory in generation_dirs for path in sorted(directory.glob("*_results.txt"))]
@@ -1217,10 +1300,55 @@ def page_tests():
                 domain=[generation_display_names[name] for name in generation_order],
                 range=["#5dade2", "#58d68d", "#f5b041", "#ec7063"],
             )
-            tabs = st.tabs(["Overview", "Cross-Generation"])
+            tabs = st.tabs(["Overview", "Model Generation Accuracy Comparison"])
 
             with tabs[0]:
-                st.markdown("### 📊 Main Model Accuracy Overview")
+                st.markdown("### 📊 V6 Model Accuracy Overview")
+                v6_overview_rows = [
+                    row for row in all_rows
+                    if row["generation"] == "v6" and row["model"] in {"pre_2000_final_v6", "post_2010_final_v6"}
+                ]
+                if v6_overview_rows:
+                    v6_chart = (
+                        alt.Chart(alt.Data(values=v6_overview_rows))
+                        .mark_bar(cornerRadiusTopLeft=6, cornerRadiusTopRight=6)
+                        .encode(
+                            x=alt.X("suite:N", title="Puzzle suite", sort=suite_order),
+                            y=alt.Y("accuracy:Q", title="Accuracy (%)", scale=alt.Scale(domain=[0, 30])),
+                            xOffset=alt.XOffset("model:N", sort=["pre_2000_final_v6", "post_2010_final_v6"]),
+                            color=alt.Color(
+                                "model:N",
+                                scale=alt.Scale(
+                                    domain=["pre_2000_final_v6", "post_2010_final_v6"],
+                                    range=["#3498db", "#e74c3c"],
+                                ),
+                                title="Model",
+                            ),
+                            tooltip=[
+                                alt.Tooltip("suite:N", title="Suite"),
+                                alt.Tooltip("model:N", title="Model"),
+                                alt.Tooltip("solved:Q", title="Solved"),
+                                alt.Tooltip("total:Q", title="Total"),
+                                alt.Tooltip("accuracy:Q", title="Accuracy", format=".1f"),
+                            ],
+                        )
+                        .properties(height=360)
+                    )
+                    v6_labels = (
+                        alt.Chart(alt.Data(values=v6_overview_rows))
+                        .mark_text(dy=-8, color="#e0e0e0")
+                        .encode(
+                            x=alt.X("suite:N", sort=suite_order),
+                            y=alt.Y("accuracy:Q", scale=alt.Scale(domain=[0, 30])),
+                            xOffset=alt.XOffset("model:N", sort=["pre_2000_final_v6", "post_2010_final_v6"]),
+                            text="label:N",
+                        )
+                    )
+                    st.altair_chart(v6_chart + v6_labels, use_container_width=True)
+                else:
+                    st.info("No v6 result files found yet.")
+
+                st.markdown("### 📊 Old Model Accuracy Overview")
                 overview_rows = [
                     row for row in all_rows
                     if row["generation"] == "old" and row["model"] in {"pre_2000", "post_2020"}
@@ -1237,7 +1365,7 @@ def page_tests():
                                 "model:N",
                                 scale=alt.Scale(
                                     domain=["pre_2000", "post_2020"],
-                                    range=["#3498db", "#e74c3c"],
+                                    range=["#5dade2", "#ec7063"],
                                 ),
                                 title="Model",
                             ),
@@ -1263,10 +1391,10 @@ def page_tests():
                     )
                     st.altair_chart(overview_chart + overview_labels, use_container_width=True)
                 else:
-                    st.info("No main-model result files found yet.")
+                    st.info("No old-model result files found yet.")
 
             with tabs[1]:
-                st.markdown("### 📊 Cross-Generation Accuracy")
+                st.markdown("### 📊 Model Generation Accuracy Comparison")
                 for family in ["pre_2000", "post_2010"]:
                     st.markdown(f"#### {family_titles[family]} Variants")
                     cols = st.columns(2)

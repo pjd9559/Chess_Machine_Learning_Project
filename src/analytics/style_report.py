@@ -13,6 +13,7 @@ from src.analytics.report_utils import ensure_generated_reports_dir, predict_mov
 
 MODEL_PAIRS = {
     "old": ("pre_2000", "post_2020"),
+    "v6": ("pre_2000_final_v6", "post_2010_final_v6"),
     "final": ("pre_2000_ultra_final", "post_2010_ultra_final"),
 }
 

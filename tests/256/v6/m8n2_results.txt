@@ -1,0 +1,30 @@
+Model generation: v6
+M8N2 Puzzle Results
+Criterion: only the first move must match the mate-in-2 key move.
+Total puzzles in source: 221
+Puzzles evaluated: 100
+
+Model: pre_2000_final_v6
+Solved: 6 / 100 (6.0%)
+White to move: 6 / 83 (7.2%)
+Black to move: 0 / 17 (0.0%)
+Solved puzzles:
+- Henry Buckle vs NN, London, 1840: d5f6
+- Wilhelm Steinitz vs David Sands, New York, 1887: g3g6
+- Johann Berger vs P Froehlich, Graz, 1922: d5f6
+- Max Euwe vs A Van Mindeno, Netherlands, 1927: d5f7
+- Wlodzimierz Schmidt vs Heinz Liebert, Polanica Zdroj, 1967: b4e1
+- Bent Larsen vs Zoltan Ribli, Riga, 1979: d8h8
+
+Model: post_2010_final_v6
+Solved: 7 / 100 (7.0%)
+White to move: 6 / 83 (7.2%)
+Black to move: 1 / 17 (5.9%)
+Solved puzzles:
+- Paul Morphy vs Duke Isouard, Paris, 1858: b3b8
+- Wilfried Paulsen vs Adolf Anderssen, Frankfurt, 1878: f2f8
+- James Mason vs Emanuel Lasker, London, 1899: c1c3
+- William Winter vs Jacob Gemzoe, Folkestone, 1933: h4f6
+- Isaias Pleci vs Lucius Endzelins, Buenos Aires, 1939: h4h5
+- Bent Larsen vs Zoltan Ribli, Riga, 1979: d8h8
+- Vlastimil Hort vs Alex Dunne, Lucerne, 1982: h3h7

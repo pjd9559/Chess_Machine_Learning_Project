@@ -61,3 +61,5 @@ src/models/post_2010_ultra_final.pt
 src/models/pre_2000_final_v1.pt
 src/models/pre_2000_final_v2.pt
 src/models/pre_2000_ultra_final.pt
+src/models/post_2010_final_v6.pt
+src/models/pre_2000_final_v6.pt

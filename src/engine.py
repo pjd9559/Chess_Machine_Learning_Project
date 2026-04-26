@@ -52,7 +52,7 @@ class GameEngine:
 
     # ── Bot moves ─────────────────────────────────────────
 
-    def bot_move(self, personality_name: str) -> chess.Move | None:
+    def bot_move(self, personality_name: str, simulations: int = 256) -> chess.Move | None:
         """
         Generate a bot move using:
         - heuristic personalities
@@ -84,7 +84,7 @@ class GameEngine:
             mcts = AlphaZeroMCTS(
                 model=model,
                 device=device,
-                simulations=256,
+                simulations=simulations,
             )
 
             visits, _ = mcts.run(self.board)

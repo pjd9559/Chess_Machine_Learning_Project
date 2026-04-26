@@ -1,0 +1,31 @@
+Model generation: v6
+M8N4 Puzzle Results
+Criterion: only the first move must match the mate-in-4 key move.
+Total puzzles in source: 462
+Puzzles evaluated: 100
+
+Model: pre_2000_final_v6
+Solved: 8 / 100 (8.0%)
+White to move: 4 / 83 (4.8%)
+Black to move: 4 / 17 (23.5%)
+Solved puzzles:
+- Cook vs A Mueller, Bristol, 1906: d1h5
+- Johannes Esser vs Oldrich Duras, Amsterdam, 1910: d6h2
+- Friedrich Saemisch vs Michael Schlosser, Trautenau, 1924: f3d4
+- Walter Michel vs Akiba Rubinstein, Semmering, 1926: h1d1
+- Henry Grob vs Ossip Bernstein, Bern, 1932: e4h4
+- Bent Larsen vs Suboticanec, Zagreb, 1955: g7h7
+- E Chukaev vs Mikhail Tal, Tbilisi, 1956: e8e1
+- Abram Zamikhovsky vs Alexander Kostiuchenko, Kiev, 1958: d3h7
+
+Model: post_2010_final_v6
+Solved: 6 / 100 (6.0%)
+White to move: 5 / 83 (6.0%)
+Black to move: 1 / 17 (5.9%)
+Solved puzzles:
+- Richardson vs Eugene Delmar, New York, 1887: e4f6
+- Max Euwe vs Carsten, Amsterdam, 1922: h7g7
+- Friedrich Saemisch vs Michael Schlosser, Trautenau, 1924: f3d4
+- Albert Becker vs Eduard Glass, Vienna, 1928: c1c8
+- Herman Steiner vs Ludwig Rellstab Sr, Reggio Emilia, 1951: d7d6
+- Miroslav Filip vs Borislav Milic, Zagreb, 1955: e5f3
