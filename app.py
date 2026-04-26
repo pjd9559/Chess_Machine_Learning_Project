@@ -6,6 +6,7 @@ Modes:
   • Human vs Bot — play against any of 5 NN personalities
   • Bot vs Bot   — watch two personalities play each other
   • Tournament   — round-robin competition with live standings
+  • Reports      — ML analytics and evaluation reports
   • Tests        — view the project test workspace
 """
 
@@ -36,13 +37,18 @@ def load_model(path):
 
 BASE_DIR = Path(__file__).resolve().parent
 TESTS_DIR = BASE_DIR / "tests"
+TESTS_RESULTS_DIR = TESTS_DIR / "256"
 
 PRE_2000_PATH = BASE_DIR / "src" / "models" / "pre_2000.pt"
 POST_2020_PATH = BASE_DIR / "src" / "models" / "post_2020.pt"
+PRE_2000_ULTRA_FINAL_PATH = BASE_DIR / "src" / "models" / "pre_2000_ultra_final.pt"
+POST_2010_ULTRA_FINAL_PATH = BASE_DIR / "src" / "models" / "post_2010_ultra_final.pt"
 
 
 PRE_2000_MODEL = load_model(PRE_2000_PATH)
 POST_2020_MODEL = load_model(POST_2020_PATH)
+PRE_2000_ULTRA_FINAL_MODEL = load_model(PRE_2000_ULTRA_FINAL_PATH)
+POST_2010_ULTRA_FINAL_MODEL = load_model(POST_2010_ULTRA_FINAL_PATH)
 
 
 # ── Inject new NN personalities ─────────────────────────
@@ -61,6 +67,22 @@ ALL_PERSONALITIES["post_2020_nn"] = type("P", (), {
     "description": "Trained on modern engine-influenced games",
     "color": "#e74c3c",
     "model": POST_2020_MODEL
+})()
+
+ALL_PERSONALITIES["pre_2000_ultra_final_nn"] = type("P", (), {
+    "name": "Pre-2000 Final Bot",
+    "icon": "♜",
+    "description": "Latest final checkpoint trained on classical-era games",
+    "color": "#3498db",
+    "model": PRE_2000_ULTRA_FINAL_MODEL
+})()
+
+ALL_PERSONALITIES["post_2010_ultra_final_nn"] = type("P", (), {
+    "name": "Post-2010 Final Bot",
+    "icon": "🔥",
+    "description": "Latest final checkpoint trained on modern games",
+    "color": "#e74c3c",
+    "model": POST_2010_ULTRA_FINAL_MODEL
 })()
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -262,6 +284,8 @@ def init_session_state():
         "tournament_current_game": "",
         "promotion_pending": None,
         "move_delay": 0.8,
+        "tournament_pair": "old",
+        "tournament_num_games": 8,
     }
     for key, val in defaults.items():
         if key not in st.session_state:
@@ -294,9 +318,9 @@ with st.sidebar:
     # Mode selector
     mode = st.radio(
         "🎮 **Game Mode**",
-        ["Human vs Bot", "Bot vs Bot", "Tournament", "Tests"],
+        ["Human vs Bot", "Bot vs Bot", "Tournament", "Reports", "Tests"],
         key="mode_radio",
-        index=["Human vs Bot", "Bot vs Bot", "Tournament", "Tests"].index(st.session_state.mode),
+        index=["Human vs Bot", "Bot vs Bot", "Tournament", "Reports", "Tests"].index(st.session_state.mode),
     )
     st.session_state.mode = mode
 
@@ -306,62 +330,23 @@ with st.sidebar:
     personality_options = {
         k: f"{v.icon} {v.name}" for k, v in ALL_PERSONALITIES.items()
     }
+    nn_personality_keys = [
+        "pre_2000_nn",
+        "post_2020_nn",
+    ]
+    nn_personality_options = {k: personality_options[k] for k in nn_personality_keys}
 
-    if mode == "Human vs Bot":
-        st.markdown("### ⚙️ Settings")
-        human_color = st.selectbox(
-            "Play as", ["white", "black"], key="human_color_sel"
-        )
-        st.session_state.human_color = human_color
-
-        bot_key = "black_personality" if human_color == "white" else "white_personality"
-        sel = st.selectbox(
-            "Bot Personality",
-            list(personality_options.keys()),
-            format_func=lambda k: personality_options[k],
-            key="bot_personality_sel",
-        )
-        st.session_state[bot_key] = sel
-
-        # Show personality details
-        p = get_personality(sel)
-        st.markdown(
-            f'<div class="personality-card" style="border-color:{p.color}">'
-            f"<strong>{p.icon} {p.name}</strong><br>"
-            f"<small>{p.description}</small></div>",
-            unsafe_allow_html=True,
-        )
-
-    elif mode == "Bot vs Bot":
-        st.markdown("### ⚙️ White Bot")
-        w_sel = st.selectbox(
-            "White Personality",
-            list(personality_options.keys()),
-            format_func=lambda k: personality_options[k],
-            key="white_bot_sel",
-        )
-        st.session_state.white_personality = w_sel
-
-        st.markdown("### ⚙️ Black Bot")
-        b_sel = st.selectbox(
-            "Black Personality",
-            list(personality_options.keys()),
-            format_func=lambda k: personality_options[k],
-            key="black_bot_sel",
-            index=1,
-        )
-        st.session_state.black_personality = b_sel
-
-        st.session_state.move_delay = st.slider(
-            "⏱ Move delay (seconds)", 0.1, 3.0, 0.8, 0.1, key="delay_slider"
-        )
-
-    elif mode == "Tournament":
+    if mode == "Tournament":
         st.markdown("### 🏆 Tournament Settings")
-        st.markdown("Round-robin between all 5 personalities.")
+        st.session_state.tournament_pair = "old"
+        st.markdown("Direct matchup between the pre-2000 and post-2020 bots.")
         st.session_state.move_delay = st.slider(
             "⏱ Move delay (seconds)", 0.1, 3.0, 0.5, 0.1, key="tourn_delay_slider"
         )
+
+    elif mode == "Reports":
+        st.markdown("### 📚 Reports")
+        st.markdown("Run ML analytics, clustering, style, and classification studies.")
 
     elif mode == "Tests":
         st.markdown("### 🧪 Tests")
@@ -380,21 +365,6 @@ with st.sidebar:
         if st.button("🔃 Flip Board", use_container_width=True):
             st.session_state.flipped = not st.session_state.flipped
             st.rerun()
-
-    if mode == "Human vs Bot":
-        col3, col4 = st.columns(2)
-        with col3:
-            if st.button("↩️ Undo", use_container_width=True):
-                engine = st.session_state.engine
-                engine.undo_two_moves()
-                st.session_state.selected_square = None
-                st.session_state.legal_targets = []
-                st.rerun()
-        with col4:
-            if st.button("🏳 Resign", use_container_width=True):
-                st.session_state.game_over = True
-                st.rerun()
-
 
 # ═══════════════════════════════════════════════════════════════════════════════
 #  Helper: Render the chessboard as an interactive SVG
@@ -744,6 +714,11 @@ def render_human_move_controls(engine, human_is_white, disabled=False):
 def page_human_vs_bot():
     engine = st.session_state.engine
     board  = engine.board
+    nn_personality_keys = ["pre_2000_nn", "post_2020_nn"]
+    if st.session_state.get("black_personality") not in nn_personality_keys:
+        st.session_state.black_personality = "post_2020_nn"
+    if st.session_state.get("white_personality") not in nn_personality_keys:
+        st.session_state.white_personality = "pre_2000_nn"
 
     # Header
     human_is_white = st.session_state.human_color == "white"
@@ -770,6 +745,44 @@ def page_human_vs_bot():
         st.markdown('<div class="glass-card">', unsafe_allow_html=True)
         st.markdown("#### 📜 Move History")
         render_move_history(engine)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+        st.markdown('<div class="glass-card">', unsafe_allow_html=True)
+        st.markdown("#### ⚙️ Controls")
+        human_color = st.selectbox(
+            "Play as",
+            ["white", "black"],
+            key="human_color_sel",
+        )
+        st.session_state.human_color = human_color
+        human_is_white = human_color == "white"
+        bot_key = "black_personality" if human_is_white else "white_personality"
+        selected_bot = st.selectbox(
+            "Bot",
+            nn_personality_keys,
+            format_func=lambda k: f"{get_personality(k).icon} {get_personality(k).name}",
+            key="bot_personality_sel",
+            index=nn_personality_keys.index(st.session_state.get(bot_key, "post_2020_nn")) if st.session_state.get(bot_key, "post_2020_nn") in nn_personality_keys else 1,
+        )
+        st.session_state[bot_key] = selected_bot
+        p = get_personality(selected_bot)
+        st.markdown(
+            f'<div class="personality-card" style="border-color:{p.color}">'
+            f"<strong>{p.icon} {p.name}</strong><br>"
+            f"<small>{p.description}</small></div>",
+            unsafe_allow_html=True,
+        )
+        ctrl_cols = st.columns(2)
+        with ctrl_cols[0]:
+            if st.button("↩️ Undo", use_container_width=True, key="human_undo_main"):
+                engine.undo_two_moves()
+                st.session_state.selected_square = None
+                st.session_state.legal_targets = []
+                st.rerun()
+        with ctrl_cols[1]:
+            if st.button("🏳 Resign", use_container_width=True, key="human_resign_main"):
+                st.session_state.game_over = True
+                st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
 
         # Material count
@@ -803,6 +816,11 @@ def page_human_vs_bot():
 def page_bot_vs_bot():
     engine = st.session_state.engine
     board  = engine.board
+    nn_personality_keys = ["pre_2000_nn", "post_2020_nn"]
+    if st.session_state.get("white_personality") not in nn_personality_keys:
+        st.session_state.white_personality = "pre_2000_nn"
+    if st.session_state.get("black_personality") not in nn_personality_keys:
+        st.session_state.black_personality = "post_2020_nn"
 
     w_p = get_personality(st.session_state.white_personality)
     b_p = get_personality(st.session_state.black_personality)
@@ -826,25 +844,44 @@ def page_bot_vs_bot():
         st.markdown("#### 📜 Move History")
         render_move_history(engine)
         st.markdown('</div>', unsafe_allow_html=True)
-
-    # Controls
-    st.markdown("---")
-    ctrl_cols = st.columns(3)
-    with ctrl_cols[0]:
-        if st.button("▶️ Play / Resume", use_container_width=True, key="bvb_play"):
-            st.session_state.bot_vs_bot_running = True
-            st.rerun()
-    with ctrl_cols[1]:
-        if st.button("⏸ Pause", use_container_width=True, key="bvb_pause"):
-            st.session_state.bot_vs_bot_running = False
-            st.rerun()
-    with ctrl_cols[2]:
-        if st.button("⏭ Step", use_container_width=True, key="bvb_step"):
-            if not board.is_game_over():
-                p_key = st.session_state.white_personality if board.turn == chess.WHITE else st.session_state.black_personality
-                engine.bot_move(p_key)
-                st.session_state.board = engine.board
+        st.markdown('<div class="glass-card">', unsafe_allow_html=True)
+        st.markdown("#### ⚙️ Controls")
+        white_sel = st.selectbox(
+            "White bot",
+            nn_personality_keys,
+            format_func=lambda k: f"{get_personality(k).icon} {get_personality(k).name}",
+            key="white_bot_sel",
+            index=nn_personality_keys.index(st.session_state.white_personality),
+        )
+        st.session_state.white_personality = white_sel
+        black_sel = st.selectbox(
+            "Black bot",
+            nn_personality_keys,
+            format_func=lambda k: f"{get_personality(k).icon} {get_personality(k).name}",
+            key="black_bot_sel",
+            index=nn_personality_keys.index(st.session_state.black_personality),
+        )
+        st.session_state.black_personality = black_sel
+        st.session_state.move_delay = st.slider(
+            "⏱ Move delay (seconds)", 0.1, 3.0, st.session_state.move_delay, 0.1, key="delay_slider"
+        )
+        ctrl_cols = st.columns(3)
+        with ctrl_cols[0]:
+            if st.button("▶️ Play / Resume", use_container_width=True, key="bvb_play"):
+                st.session_state.bot_vs_bot_running = True
                 st.rerun()
+        with ctrl_cols[1]:
+            if st.button("⏸ Pause", use_container_width=True, key="bvb_pause"):
+                st.session_state.bot_vs_bot_running = False
+                st.rerun()
+        with ctrl_cols[2]:
+            if st.button("⏭ Step", use_container_width=True, key="bvb_step"):
+                if not board.is_game_over():
+                    p_key = st.session_state.white_personality if board.turn == chess.WHITE else st.session_state.black_personality
+                    engine.bot_move(p_key)
+                    st.session_state.board = engine.board
+                    st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
 
     # Auto-play loop
     if st.session_state.bot_vs_bot_running and not board.is_game_over():
@@ -862,19 +899,34 @@ def page_bot_vs_bot():
 # ═══════════════════════════════════════════════════════════════════════════════
 
 def page_tournament():
+    tournament_pairs = {
+        "old": ("pre_2000_nn", "post_2020_nn"),
+    }
+    names = list(tournament_pairs["old"])
+    st.session_state.tournament_num_games = st.slider(
+        "Games to play", 1, 100, st.session_state.get("tournament_num_games", 8), 1, key="tourn_num_games_slider"
+    )
+    num_games = st.session_state.tournament_num_games
+    matchups = [
+        (names[0], names[1]) if idx % 2 == 0 else (names[1], names[0])
+        for idx in range(num_games)
+    ]
+
     st.markdown(
         '<div class="glass-card">'
-        '<h2 style="margin:0">🏆 Tournament — Round Robin</h2>'
+        '<h2 style="margin:0">🏆 Tournament</h2>'
         '<p style="margin:0.3rem 0 0;opacity:0.7">'
-        'All 5 personalities compete in a full round-robin!</p>'
+        f'Direct evaluation match between the pre-2000 and post-2020 bots over {num_games} game(s).</p>'
         '</div>',
         unsafe_allow_html=True,
     )
 
-    names = list(ALL_PERSONALITIES.keys())
-    matchups = list(itertools.combinations(names, 2))
-
     # Initialise tournament results
+    current_names = sorted(st.session_state.tournament_results.keys()) if st.session_state.tournament_results else []
+    if current_names != sorted(names):
+        st.session_state.tournament_results = {}
+        st.session_state.tournament_games = []
+        st.session_state.tournament_current_game = ""
     if not st.session_state.tournament_results:
         st.session_state.tournament_results = {
             n: {"wins": 0, "losses": 0, "draws": 0, "points": 0.0}
@@ -987,6 +1039,110 @@ def run_tournament(matchups):
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
+#  Reports cache helpers
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@st.cache_data(show_spinner=False)
+def cached_style_report(num_games: int, simulations: int, max_moves: int, model_pair: str):
+    from src.analytics.style_report import generate_style_report
+
+    return generate_style_report(num_games=num_games, simulations=simulations, max_moves=max_moves, model_pair=model_pair)
+
+
+def render_metric_row(items):
+    cols = st.columns(len(items))
+    for col, (label, value, delta) in zip(cols, items):
+        col.metric(label, value, delta=delta)
+
+
+def render_reports():
+    model_pair = "old"
+
+    st.markdown(
+        '<div class="glass-card">'
+        '<h2 style="margin:0">📚 Reports</h2>'
+        '<p style="margin:0.3rem 0 0;opacity:0.7">'
+        'Style profiling for the pre-2000 and post-2020 model pair.</p>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
+
+    tabs = st.tabs(["Style Behavior"])
+
+    with tabs[0]:
+        st.markdown("### Style Behavior Report")
+        style_controls = st.columns(3)
+        style_games = style_controls[0].slider("Head-to-head games", 1, 100, 30, 1)
+        style_sims = style_controls[1].slider("MCTS simulations", 1, 256, 12)
+        style_max_moves = style_controls[2].slider("Max plies", 40, 120, 80, 10)
+        if st.button("Run style behavior analysis", key="run_style_report"):
+            st.session_state["show_style_report"] = True
+
+        if st.session_state.get("show_style_report"):
+            try:
+                with st.spinner("Simulating games and computing style metrics..."):
+                    style = cached_style_report(style_games, style_sims, style_max_moves, model_pair)
+                game_df = style["games"]
+                move_df = style["moves"]
+                summary_df = style["summary"]
+                model_names = summary_df["model"].tolist() if not summary_df.empty else []
+                first_model = model_names[0] if len(model_names) > 0 else "Model A"
+                second_model = model_names[1] if len(model_names) > 1 else "Model B"
+                first_wins = int((game_df["winner"] == first_model).sum()) if not game_df.empty else 0
+                second_wins = int((game_df["winner"] == second_model).sum()) if not game_df.empty else 0
+                render_metric_row(
+                    [
+                        ("Games", f"{len(game_df)}", None),
+                        (f"{first_model} wins", f"{first_wins}", None),
+                        (f"{second_model} wins", f"{second_wins}", None),
+                    ]
+                )
+                st.dataframe(summary_df, use_container_width=True)
+                if not summary_df.empty:
+                    style_metric_columns = [
+                        "sacrifice_rate",
+                        "mobility_after",
+                        "king_pressure_after",
+                        "center_control_after",
+                        "checks_given",
+                        "capture_rate",
+                        "queen_trade_rate",
+                        "castling_rate",
+                        "avg_move_tactical_pressure",
+                        "avg_game_length",
+                    ]
+                    style_chart_df = summary_df.melt(
+                        id_vars="model",
+                        value_vars=[col for col in style_metric_columns if col in summary_df.columns],
+                        var_name="metric",
+                        value_name="value",
+                    )
+                    style_chart = (
+                        alt.Chart(style_chart_df)
+                        .mark_bar()
+                        .encode(
+                            x=alt.X("metric:N", title=None),
+                            y=alt.Y("value:Q", title="Average value"),
+                            color=alt.Color("model:N", scale=alt.Scale(domain=model_names, range=["#3498db", "#e74c3c"])),
+                            xOffset="model:N",
+                            tooltip=["model:N", "metric:N", alt.Tooltip("value:Q", format=".3f")],
+                        )
+                        .properties(height=320)
+                    )
+                    st.altair_chart(style_chart, use_container_width=True)
+                st.info(style["narrative"])
+                st.download_button(
+                    "Download move-level style CSV",
+                    data=move_df.to_csv(index=False).encode("utf-8"),
+                    file_name="style_moves.csv",
+                    mime="text/csv",
+                    key="download_style_moves",
+                )
+            except ModuleNotFoundError as exc:
+                st.error(f"Missing report dependency: {exc}. Install requirements.txt and rerun.")
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
 #  ██  TESTS PAGE  ██
 # ═══════════════════════════════════════════════════════════════════════════════
 
@@ -1000,84 +1156,172 @@ def page_tests():
         unsafe_allow_html=True,
     )
 
-    st.markdown("### 📊 Latest Puzzle Results")
-    result_files = sorted(TESTS_DIR.glob("*_results.txt"))
+    generation_order = ["old", "v1", "v2", "ultral_final"]
+    generation_display_names = {
+        "old": "main",
+        "v1": "v1",
+        "v2": "v2",
+        "ultral_final": "v3",
+    }
+    generation_dirs = [TESTS_RESULTS_DIR / name for name in generation_order]
+    result_files = [path for directory in generation_dirs for path in sorted(directory.glob("*_results.txt"))]
+
+    def parse_result_file(result_file: Path) -> list[dict[str, object]]:
+        raw_text = result_file.read_text()
+        generation_match = re.search(r"Model generation:\s+(.+)", raw_text)
+        suite_match = re.search(r"^(M8N\d+)\s+Puzzle Results", raw_text, re.MULTILINE)
+        if not generation_match or not suite_match:
+            return []
+
+        generation = generation_match.group(1).strip()
+        suite = suite_match.group(1).lower()
+        rows = []
+        current_model = None
+        for line in raw_text.splitlines():
+            model_match = re.match(r"Model:\s+(.+)", line)
+            if model_match:
+                current_model = model_match.group(1).strip()
+                continue
+
+            solved_match = re.match(r"Solved:\s+(\d+)\s+/\s+(\d+)\s+\(([\d.]+)%\)", line)
+            if solved_match and current_model:
+                solved, total, accuracy = solved_match.groups()
+                family = "pre_2000" if current_model.startswith("pre_2000") else "post_2010"
+                rows.append(
+                    {
+                        "generation": generation,
+                        "generation_display": generation_display_names.get(generation, generation),
+                        "suite": suite,
+                        "family": family,
+                        "model": current_model,
+                        "accuracy": float(accuracy),
+                        "solved": int(solved),
+                        "total": int(total),
+                        "label": f"{accuracy}% ({solved}/{total})",
+                    }
+                )
+        return rows
+
     if result_files:
+        all_rows = []
         for result_file in result_files:
-            raw_text = result_file.read_text()
-            chart_rows = []
-            current_model = None
+            all_rows.extend(parse_result_file(result_file))
 
-            for line in raw_text.splitlines():
-                model_match = re.match(r"Model:\s+(.+)", line)
-                if model_match:
-                    current_model = model_match.group(1).strip()
-                    continue
+        if all_rows:
+            suite_order = ["m8n1", "m8n2", "m8n3", "m8n4"]
+            family_titles = {
+                "pre_2000": "Pre-2000",
+                "post_2010": "Post-2010",
+            }
+            color_scale = alt.Scale(
+                domain=[generation_display_names[name] for name in generation_order],
+                range=["#5dade2", "#58d68d", "#f5b041", "#ec7063"],
+            )
+            tabs = st.tabs(["Overview", "Cross-Generation"])
 
-                solved_match = re.match(r"Solved:\s+(\d+)\s+/\s+(\d+)\s+\(([\d.]+)%\)", line)
-                if solved_match and current_model:
-                    solved, total, accuracy = solved_match.groups()
-                    chart_rows.append(
-                        {
-                            "Model": current_model,
-                            "Accuracy": float(accuracy),
-                            "Solved": int(solved),
-                            "Total": int(total),
-                            "Label": f"{accuracy}% ({solved}/{total})",
-                        }
-                    )
-
-            st.markdown(f"#### `{result_file.name}`")
-
-            if chart_rows:
-                base = alt.Chart(alt.Data(values=chart_rows))
-
-                bars = (
-                    base
-                    .mark_bar(cornerRadiusTopLeft=6, cornerRadiusTopRight=6)
-                    .encode(
-                        y=alt.Y(
-                            "Model:N",
-                            title=None,
-                            sort=["pre_2000", "post_2020"],
-                        ),
-                        x=alt.X("Accuracy:Q", title="Accuracy (%)", scale=alt.Scale(domain=[0, 30])),
-                        color=alt.Color(
-                            "Model:N",
-                            scale=alt.Scale(
-                                domain=["pre_2000", "post_2020"],
-                                range=["#3498db", "#e74c3c"],
+            with tabs[0]:
+                st.markdown("### 📊 Main Model Accuracy Overview")
+                overview_rows = [
+                    row for row in all_rows
+                    if row["generation"] == "old" and row["model"] in {"pre_2000", "post_2020"}
+                ]
+                if overview_rows:
+                    overview_chart = (
+                        alt.Chart(alt.Data(values=overview_rows))
+                        .mark_bar(cornerRadiusTopLeft=6, cornerRadiusTopRight=6)
+                        .encode(
+                            x=alt.X("suite:N", title="Puzzle suite", sort=suite_order),
+                            y=alt.Y("accuracy:Q", title="Accuracy (%)", scale=alt.Scale(domain=[0, 30])),
+                            xOffset=alt.XOffset("model:N", sort=["pre_2000", "post_2020"]),
+                            color=alt.Color(
+                                "model:N",
+                                scale=alt.Scale(
+                                    domain=["pre_2000", "post_2020"],
+                                    range=["#3498db", "#e74c3c"],
+                                ),
+                                title="Model",
                             ),
-                            legend=None,
-                        ),
-                        tooltip=[
-                            alt.Tooltip("Model:N"),
-                            alt.Tooltip("Solved:Q"),
-                            alt.Tooltip("Total:Q"),
-                            alt.Tooltip("Accuracy:Q", format=".1f"),
-                        ],
+                            tooltip=[
+                                alt.Tooltip("suite:N", title="Suite"),
+                                alt.Tooltip("model:N", title="Model"),
+                                alt.Tooltip("solved:Q", title="Solved"),
+                                alt.Tooltip("total:Q", title="Total"),
+                                alt.Tooltip("accuracy:Q", title="Accuracy", format=".1f"),
+                            ],
+                        )
+                        .properties(height=360)
                     )
-                )
-
-                labels = (
-                    base
-                    .mark_text(align="left", baseline="middle", dx=6, color="#e0e0e0")
-                    .encode(
-                        y=alt.Y(
-                            "Model:N",
-                            title=None,
-                            sort=["pre_2000", "post_2020"],
-                        ),
-                        x=alt.X("Accuracy:Q", scale=alt.Scale(domain=[0, 30])),
-                        text="Label:N",
+                    overview_labels = (
+                        alt.Chart(alt.Data(values=overview_rows))
+                        .mark_text(dy=-8, color="#e0e0e0")
+                        .encode(
+                            x=alt.X("suite:N", sort=suite_order),
+                            y=alt.Y("accuracy:Q", scale=alt.Scale(domain=[0, 30])),
+                            xOffset=alt.XOffset("model:N", sort=["pre_2000", "post_2020"]),
+                            text="label:N",
+                        )
                     )
-                )
+                    st.altair_chart(overview_chart + overview_labels, use_container_width=True)
+                else:
+                    st.info("No main-model result files found yet.")
 
-                chart = (bars + labels).properties(height=180)
-                st.altair_chart(chart, use_container_width=True)
+            with tabs[1]:
+                st.markdown("### 📊 Cross-Generation Accuracy")
+                for family in ["pre_2000", "post_2010"]:
+                    st.markdown(f"#### {family_titles[family]} Variants")
+                    cols = st.columns(2)
+                    for idx, suite in enumerate(suite_order):
+                        chart_rows = [
+                            row for row in all_rows
+                            if row["family"] == family and row["suite"] == suite
+                        ]
+                        with cols[idx % 2]:
+                            st.markdown(f"**{suite}_{family}**")
+                            if not chart_rows:
+                                st.info("No results found for this suite yet.")
+                                continue
 
-            with st.expander(f"Show details for {result_file.name}", expanded=False):
-                st.code(raw_text, language="text")
+                            base = alt.Chart(alt.Data(values=chart_rows))
+                            bars = (
+                                base
+                                .mark_bar(cornerRadiusTopLeft=6, cornerRadiusTopRight=6)
+                                .encode(
+                                    x=alt.X(
+                                        "generation_display:N",
+                                        title="Generation",
+                                        sort=[generation_display_names[name] for name in generation_order],
+                                    ),
+                                    y=alt.Y("accuracy:Q", title="Accuracy (%)", scale=alt.Scale(domain=[0, 30])),
+                                    color=alt.Color("generation_display:N", scale=color_scale, legend=None),
+                                    tooltip=[
+                                        alt.Tooltip("generation_display:N", title="Generation"),
+                                        alt.Tooltip("model:N", title="Model"),
+                                        alt.Tooltip("solved:Q", title="Solved"),
+                                        alt.Tooltip("total:Q", title="Total"),
+                                        alt.Tooltip("accuracy:Q", title="Accuracy", format=".1f"),
+                                    ],
+                                )
+                            )
+                            labels = (
+                                base
+                                .mark_text(dy=-8, color="#e0e0e0")
+                                .encode(
+                                    x=alt.X(
+                                        "generation_display:N",
+                                        sort=[generation_display_names[name] for name in generation_order],
+                                    ),
+                                    y=alt.Y("accuracy:Q", scale=alt.Scale(domain=[0, 30])),
+                                    text="label:N",
+                                )
+                            )
+                            chart = (bars + labels).properties(height=260)
+                            st.altair_chart(chart, use_container_width=True)
+
+                st.markdown("### 📄 Raw Result Files")
+                for result_file in result_files:
+                    display_dir = generation_display_names.get(result_file.parent.name, result_file.parent.name)
+                    with st.expander(f"Show details for {display_dir}/{result_file.name}", expanded=False):
+                        st.code(result_file.read_text(), language="text")
     else:
         st.markdown("*No generated results yet. Run `tests/eval_m8n2.py` first.*")
 
@@ -1092,5 +1336,7 @@ elif st.session_state.mode == "Bot vs Bot":
     page_bot_vs_bot()
 elif st.session_state.mode == "Tournament":
     page_tournament()
+elif st.session_state.mode == "Reports":
+    render_reports()
 elif st.session_state.mode == "Tests":
     page_tests()

@@ -1,0 +1,32 @@
+Model generation: v2
+M8N4 Puzzle Results
+Criterion: only the first move must match the mate-in-4 key move.
+Total puzzles in source: 462
+Puzzles evaluated: 100
+
+Model: pre_2000_final_v2
+Solved: 11 / 100 (11.0%)
+White to move: 11 / 83 (13.3%)
+Black to move: 0 / 17 (0.0%)
+Solved puzzles:
+- Jules De Riviere vs Paul Journoud, Paris, 1860: e5f7
+- Mikhail Chigorin vs Ilia Shumov, St Petersburg, 1876: f4f6
+- James Grundy vs Eugene Delmar, New York, 1880: b4b8
+- Siegbert Tarrasch vs Arthur Kurschner, Nuremberg, 1889: e1e8
+- Geza Maroczy vs Gyozo Exner, Budapest, 1894: d3f5
+- Imre Konig vs Hermann Weiss, Vienna, 1919: h1h8
+- Anthony Santasiere vs EB Adams, New York, 1926: h5h7
+- Karl Ahues vs Birger Rasmusson, Bad Niendorf, 1934: g5g7
+- Arnold Denker vs H Klein, USA, 1944: h4h8
+- Friedrich Saemisch vs O Menzinger, Marktoberdorf, 1953: e5g6
+- Oscar Panno vs Gedeon Barcza, Munich, 1958: b8f8
+
+Model: post_2010_final_v2
+Solved: 4 / 100 (4.0%)
+White to move: 3 / 83 (3.6%)
+Black to move: 1 / 17 (5.9%)
+Solved puzzles:
+- Claus Pitschel vs Adolf Anderssen, Leipzig, 1851: h6g7
+- Siegbert Tarrasch vs Arthur Kurschner, Nuremberg, 1889: e1e8
+- Larry Evans vs W Young, Baltimore, 1948: e3g5
+- Miroslav Filip vs Borislav Milic, Zagreb, 1955: e5f3

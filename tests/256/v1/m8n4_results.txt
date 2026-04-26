@@ -1,0 +1,39 @@
+Model generation: v1
+M8N4 Puzzle Results
+Criterion: only the first move must match the mate-in-4 key move.
+Total puzzles in source: 462
+Puzzles evaluated: 100
+
+Model: pre_2000_final_v1
+Solved: 9 / 100 (9.0%)
+White to move: 7 / 83 (8.4%)
+Black to move: 2 / 17 (11.8%)
+Solved puzzles:
+- Adolf Anderssen vs NN, Berlin, 1866: h4h7
+- Mikhail Chigorin vs Ilia Shumov, St Petersburg, 1876: f4f6
+- Geza Maroczy vs Gyozo Exner, Budapest, 1894: d3f5
+- Frederick Yates vs Aron Nimzowitsch, Hamburg, 1910: d7d1
+- Imre Konig vs Hermann Weiss, Vienna, 1919: h1h8
+- Anthony Santasiere vs EB Adams, New York, 1926: h5h7
+- Henry Grob vs Ossip Bernstein, Bern, 1932: e4h4
+- Paul Keres vs V Rootare, Tallinn, 1942: h1h7
+- Larry Evans vs W Young, Baltimore, 1948: e3g5
+
+Model: post_2010_final_v1
+Solved: 13 / 100 (13.0%)
+White to move: 12 / 83 (14.5%)
+Black to move: 1 / 17 (5.9%)
+Solved puzzles:
+- Ignac Kolisch vs Luigi Centurini, Geneva, 1859: a6a8
+- Paul Morphy vs Samuel Boden, London, 1859: f5f6
+- Mikhail Chigorin vs Ilia Shumov, St Petersburg, 1876: f4f6
+- Amos Burn vs F Braund, London, 1887: g6f6
+- Richardson vs Eugene Delmar, New York, 1887: e4f6
+- Franz Jacob vs Jacques Mieses, Dusseldorf, 1908: g6h6
+- Frederick Yates vs Aron Nimzowitsch, Hamburg, 1910: d7d1
+- Anthony Santasiere vs EB Adams, New York, 1926: h5h7
+- M Noordijk vs Salo Landau, Rotterdam, 1927: f7f4
+- Karl Ahues vs Birger Rasmusson, Bad Niendorf, 1934: g5g7
+- Isaac Kashdan vs Charles Jaffe, Boston, 1938: h4h6
+- Larry Evans vs W Young, Baltimore, 1948: e3g5
+- Bent Larsen vs Suboticanec, Zagreb, 1955: g7h7

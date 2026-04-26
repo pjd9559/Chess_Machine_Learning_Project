@@ -1,0 +1,34 @@
+Model generation: old
+M8N2 Puzzle Results
+Criterion: only the first move must match the mate-in-2 key move.
+Total puzzles in source: 221
+Puzzles evaluated: 100
+
+Model: pre_2000
+Solved: 10 / 100 (10.0%)
+White to move: 8 / 83 (9.6%)
+Black to move: 2 / 17 (11.8%)
+Solved puzzles:
+- Joseph Blackburne vs Martin, England, 1876: g4d7
+- Siegbert Tarrasch vs Fiedler, Nuremberg, 1892: d1g4
+- James Mason vs Georg Marco, Leipzig, 1894: g2g1
+- Nicolas Ticoulat vs Andor Lilienthal, Sitges, 1934: d4b5
+- Arthur Dake vs Timothy Cranston, Warsaw, 1935: h6h7
+- Octav Troianescu vs Cedendemberel Lhagvasuren, Ulan Bator, 1956: g6e5
+- Wlodzimierz Schmidt vs Heinz Liebert, Polanica Zdroj, 1967: b4e1
+- Samuel Reshevsky vs Yasuji Matsumoto, Siegen, 1970: h8g7
+- Vlastimil Hort vs Alex Dunne, Lucerne, 1982: h3h7
+- Michael Adams vs Luis Comas Fabrego, Adelaide, 1988: e7f7
+
+Model: post_2020
+Solved: 7 / 100 (7.0%)
+White to move: 5 / 83 (6.0%)
+Black to move: 2 / 17 (11.8%)
+Solved puzzles:
+- James Mason vs Emanuel Lasker, London, 1899: c1c3
+- Enrico Paoli vs Jan Foltys, Trencianske Teplice, 1949: c6b5
+- Arthur Bisguier vs J. Penrose, Southsea, 1950: g2g8
+- Posch vs Derr, Vienna, 1958: g4g7
+- Jeremy Silman vs Ozdal Barkan, Palo Alto, 1981: h5h6
+- Vlastimil Hort vs Alex Dunne, Lucerne, 1982: h3h7
+- Boris Spassky vs Arnulf Westermeier, Germany, 1982: f8f6

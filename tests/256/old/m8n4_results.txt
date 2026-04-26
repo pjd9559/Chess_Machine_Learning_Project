@@ -1,0 +1,36 @@
+Model generation: old
+M8N4 Puzzle Results
+Criterion: only the first move must match the mate-in-4 key move.
+Total puzzles in source: 462
+Puzzles evaluated: 100
+
+Model: pre_2000
+Solved: 11 / 100 (11.0%)
+White to move: 10 / 83 (12.0%)
+Black to move: 1 / 17 (5.9%)
+Solved puzzles:
+- Paul Morphy vs Samuel Boden, London, 1859: f5f6
+- Jules De Riviere vs Paul Journoud, Paris, 1860: e5f7
+- Wilfried Paulsen vs Eduard Hammacher, Frankfurt, 1878: e5f7
+- Geza Maroczy vs Gyozo Exner, Budapest, 1894: d3f5
+- Franz Jacob vs Jacques Mieses, Dusseldorf, 1908: g6h6
+- Leo Fleischmann vs Savielly Tartakower, St Petersburg, 1909: g5f7
+- Oskar Tenner vs H Wegemund, Hamburg, 1910: h4h6
+- Edgar Colle vs Victor Soultanbeieff, Liege, 1930: g5f6
+- Isaac Kashdan vs Charles Jaffe, Boston, 1938: h4h6
+- Larry Evans vs W Young, Baltimore, 1948: e3g5
+- Miroslav Filip vs Borislav Milic, Zagreb, 1955: e5f3
+
+Model: post_2020
+Solved: 8 / 100 (8.0%)
+White to move: 7 / 83 (8.4%)
+Black to move: 1 / 17 (5.9%)
+Solved puzzles:
+- Mikhail Chigorin vs Ilia Shumov, St Petersburg, 1876: f4f6
+- James Grundy vs Eugene Delmar, New York, 1880: b4b8
+- Siegbert Tarrasch vs Arthur Kurschner, Nuremberg, 1889: e1e8
+- Oskar Tenner vs H Wegemund, Hamburg, 1910: h4h6
+- George Thomas vs Vera Menchik, Carlsbad, 1929: f5c8
+- Karl Ahues vs Birger Rasmusson, Bad Niendorf, 1934: g5g7
+- Isaac Kashdan vs Charles Jaffe, Boston, 1938: h4h6
+- E Chukaev vs Mikhail Tal, Tbilisi, 1956: e8e1

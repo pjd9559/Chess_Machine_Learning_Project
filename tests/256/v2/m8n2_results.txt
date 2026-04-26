@@ -1,0 +1,35 @@
+Model generation: v2
+M8N2 Puzzle Results
+Criterion: only the first move must match the mate-in-2 key move.
+Total puzzles in source: 221
+Puzzles evaluated: 100
+
+Model: pre_2000_final_v2
+Solved: 10 / 100 (10.0%)
+White to move: 6 / 83 (7.2%)
+Black to move: 4 / 17 (23.5%)
+Solved puzzles:
+- Harry Pillsbury vs Lyons Rodgers, New York 1893: h4h6
+- James Mason vs Georg Marco, Leipzig, 1894: g2g1
+- James Mason vs Emanuel Lasker, London, 1899: c1c3
+- Pulitzer vs George Marco, Vienna, 1900: e1e8
+- Schwartz vs Samsonov, Heidelberg, 1908: g5e6
+- Nicolas Ticoulat vs Andor Lilienthal, Sitges, 1934: d4b5
+- Octav Troianescu vs Cedendemberel Lhagvasuren, Ulan Bator, 1956: g6e5
+- Werner Hobusch vs Liebscher, corr., 1984: f5f7
+- Ram Ofek vs Gregory Kaidanov, London, 1990: f5f2
+- Grigory Serper vs Alexei Shirov, Moscow, 1991: e2e6
+
+Model: post_2010_final_v2
+Solved: 8 / 100 (8.0%)
+White to move: 6 / 83 (7.2%)
+Black to move: 2 / 17 (11.8%)
+Solved puzzles:
+- Henry Buckle vs NN, London, 1840: d5f6
+- Wilfried Paulsen vs Adolf Anderssen, Frankfurt, 1878: f2f8
+- James Mason vs Emanuel Lasker, London, 1899: c1c3
+- Schwartz vs Samsonov, Heidelberg, 1908: g5e6
+- Emanuel Lasker vs Fritz Englund, Scheveningen, 1913: e4c6
+- Vladimir Petrov vs H Cordova, Buenos Aires, 1939: h4h6
+- Michael Adams vs Luis Comas Fabrego, Adelaide, 1988: e7f7
+- Hermann Heslenfeld vs Robert Wade, Bad Woerishofen, 1991: e6h3

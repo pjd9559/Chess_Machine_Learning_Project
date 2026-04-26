@@ -1,0 +1,38 @@
+Model generation: v1
+M8N2 Puzzle Results
+Criterion: only the first move must match the mate-in-2 key move.
+Total puzzles in source: 221
+Puzzles evaluated: 100
+
+Model: pre_2000_final_v1
+Solved: 11 / 100 (11.0%)
+White to move: 10 / 83 (12.0%)
+Black to move: 1 / 17 (5.9%)
+Solved puzzles:
+- Joseph Blackburne vs Martin, England, 1876: g4d7
+- Wilfried Paulsen vs Adolf Anderssen, Frankfurt, 1878: f2f8
+- Ryder vs NN, Leipzig, 1899: c7c8
+- Brunnemer vs Patton, corr. USA, 1920: d1d8
+- Nicolas Ticoulat vs Andor Lilienthal, Sitges, 1934: d4b5
+- Samuel Reshevsky vs Yasuji Matsumoto, Siegen, 1970: h8g7
+- Bent Larsen vs Zoltan Ribli, Riga, 1979: d8h8
+- Jeremy Silman vs Ozdal Barkan, Palo Alto, 1981: h5h6
+- Vlastimil Hort vs Alex Dunne, Lucerne, 1982: h3h7
+- Michael Adams vs Luis Comas Fabrego, Adelaide, 1988: e7f7
+- Larry Christiansen vs John Nunn, Vienna, 1991: f1f6
+
+Model: post_2010_final_v1
+Solved: 10 / 100 (10.0%)
+White to move: 7 / 83 (8.4%)
+Black to move: 3 / 17 (17.6%)
+Solved puzzles:
+- Paul Morphy vs Duke Isouard, Paris, 1858: b3b8
+- James Mason vs Emanuel Lasker, London, 1899: c1c3
+- Emanuel Lasker vs NN, Manchester, 1903: c1f4
+- Schwartz vs Samsonov, Heidelberg, 1908: g5e6
+- Emanuel Lasker vs Fritz Englund, Scheveningen, 1913: e4c6
+- Vladimir Petrov vs H Cordova, Buenos Aires, 1939: h4h6
+- Enrico Paoli vs Jan Foltys, Trencianske Teplice, 1949: c6b5
+- Posch vs Derr, Vienna, 1958: g4g7
+- Leonid Shamkovich vs Anatoly Trubman, USA, 1990: h6f8
+- Hermann Heslenfeld vs Robert Wade, Bad Woerishofen, 1991: e6h3

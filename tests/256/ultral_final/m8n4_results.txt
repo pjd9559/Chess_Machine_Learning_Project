@@ -1,0 +1,36 @@
+Model generation: ultral_final
+M8N4 Puzzle Results
+Criterion: only the first move must match the mate-in-4 key move.
+Total puzzles in source: 462
+Puzzles evaluated: 100
+
+Model: pre_2000_ultra_final
+Solved: 7 / 100 (7.0%)
+White to move: 7 / 83 (8.4%)
+Black to move: 0 / 17 (0.0%)
+Solved puzzles:
+- Paul Morphy vs Samuel Boden, London, 1859: f5f6
+- James Grundy vs Eugene Delmar, New York, 1880: b4b8
+- Fraser vs Farrow, corr., 1896: c7d5
+- Franz Jacob vs Jacques Mieses, Dusseldorf, 1908: g6h6
+- Friedrich Saemisch vs Rudolf Spielmann, Baden-Baden, 1925: e3h6
+- Isaac Kashdan vs Charles Jaffe, Boston, 1938: h4h6
+- Larry Evans vs W Young, Baltimore, 1948: e3g5
+
+Model: post_2010_ultra_final
+Solved: 12 / 100 (12.0%)
+White to move: 11 / 83 (13.3%)
+Black to move: 1 / 17 (5.9%)
+Solved puzzles:
+- Ignac Kolisch vs Luigi Centurini, Geneva, 1859: a6a8
+- Jules De Riviere vs Paul Journoud, Paris, 1860: e5f7
+- Serafino Dubois vs Augustus Mongredien, London, 1862: h6g7
+- Henry Bird vs Max Judd, Philadelphia, 1876: f3g3
+- Mikhail Chigorin vs Ilia Shumov, St Petersburg, 1876: f4f6
+- Richardson vs Eugene Delmar, New York, 1887: e4f6
+- Leo Fleischmann vs Savielly Tartakower, St Petersburg, 1909: g5f7
+- Mojsesz Lowtzky vs Anton Olson, Hamburg, 1910: g5f6
+- Oskar Tenner vs H Wegemund, Hamburg, 1910: h4h6
+- Isaac Kashdan vs Charles Jaffe, Boston, 1938: h4h6
+- Arnold Denker vs A Adams, USA, 1940: f6h7
+- Lev Polugaevsky vs Gyorgy Szilagyi, Moscow, 1960: c5f8

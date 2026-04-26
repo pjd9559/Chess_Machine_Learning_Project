@@ -54,3 +54,24 @@ The agent must implement data loaders for:
 │   └── utils.py          # PGN parsing and board-to-tensor conversion
 ├── models/               # Pre-trained .pth or .h5 files
 └── data/                 # Data loading scripts
+
+## Reports
+The Streamlit app now includes a `Reports` mode for course-style ML analysis of the two neural chess bots.
+
+Available report tabs:
+- `Embedding Visualization`: extracts penultimate-layer embeddings, then shows PCA and t-SNE plots with chess metadata.
+- `Cluster Analysis`: runs k-means from scratch on the embeddings and summarizes cluster themes, sizes, and per-model behavior.
+- `Style Behavior`: simulates head-to-head games and compares sacrifice rate, king pressure, center control, captures, and related style metrics.
+- `Style Classification`: trains a lightweight classifier to predict whether `pre_2000` or `post_2020` made a move.
+
+How to use:
+1. Install dependencies:
+   `pip install -r requirements.txt`
+2. Run the app:
+   `.venv/bin/streamlit run app.py`
+3. Open the `Reports` mode from the sidebar.
+4. Use each tab’s `Run analysis` button to generate cached report artifacts and visualizations.
+
+Generated report artifacts:
+- `generated_reports/` stores reusable analytics outputs such as style-game logs and cluster labels.
+- `tests/*_results.txt` still power the lightweight puzzle evaluation summaries shown in the `Tests` mode.

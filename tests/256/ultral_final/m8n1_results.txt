@@ -1,0 +1,19 @@
+Model generation: ultral_final
+M8N1 Puzzle Results
+Criterion: only the first move must match the mate-in-1 key move.
+Total puzzles in source: 5012
+Puzzles evaluated: 100
+
+Model: pre_2000_ultra_final
+Solved: 0 / 100 (0.0%)
+White to move: 0 / 100 (0.0%)
+Black to move: 0 / 0 (0.0%)
+
+Model: post_2010_ultra_final
+Solved: 3 / 100 (3.0%)
+White to move: 3 / 100 (3.0%)
+Black to move: 0 / 0 (0.0%)
+Solved puzzles:
+- m8n1.csv row 44: g1g6
+- m8n1.csv row 70: e6e8
+- m8n1.csv row 76: g6h4

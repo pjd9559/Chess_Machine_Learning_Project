@@ -1,0 +1,42 @@
+Model generation: v2
+M8N3 Puzzle Results
+Criterion: only the first move must match the mate-in-3 key move.
+Total puzzles in source: 489
+Puzzles evaluated: 100
+
+Model: pre_2000_final_v2
+Solved: 16 / 100 (16.0%)
+White to move: 14 / 80 (17.5%)
+Black to move: 2 / 20 (10.0%)
+Solved puzzles:
+- William Evans vs Alexander MacDonnell, London, 1829: c3h8
+- Adolf Anderssen vs Ernst Falkbeer, Berlin, 1851: e4e3
+- Paul Morphy vs NN, New Orleans, 1858: b1b5
+- Joseph Blackburne vs Wilhelm Steinitz, London, 1883: g5h6
+- Jackson vs Frank Marshall, London, 1899: f2f4
+- Rudolf Spielmann vs Saviely Tartakower, Munich, 1909: f5e7
+- Richard Reti vs Saviely Tartakower, Vienna, 1910: d3d8
+- Oscar Chajes vs Charles Jaffe, New York, 1911: g2g8
+- Oldrich Duras vs Amos Burn, San Sebastian, 1911: e7f8
+- Emanuel Lasker vs Frank Marshall, St Petersburg, 1914: a6a7
+- Gessner vs Whitaker, Chicago, 1916: e4f6
+- Elekes vs Zitzen, corr., 1917: e5g6
+- Boris Kostic vs Coleman, Perth, 1924: h4h7
+- Meergrun vs NN, London, 1924: f4f8
+- Roberto Grau vs Edgard Colle, San Remo, 1930: c5a6
+- Leon Widermanski vs Jan Foltys, Jurata, 1937: d2f3
+
+Model: post_2010_final_v2
+Solved: 9 / 100 (9.0%)
+White to move: 8 / 80 (10.0%)
+Black to move: 1 / 20 (5.0%)
+Solved puzzles:
+- Paul Morphy vs NN, New Orleans, 1858: b1b5
+- Frederic Deacon vs Valentine Green, London, 1862: f4g6
+- Joseph Blackburne vs NN, England, 1886: f1c1
+- Napier vs NN, Hastings, 1904: g4g6
+- Oscar Chajes vs Charles Jaffe, New York, 1911: g2g8
+- Gessner vs Whitaker, Chicago, 1916: e4f6
+- Grigory Lowenfisch vs Freymann, USSR, 1925: h5f7
+- Roberto Grau vs Edgard Colle, San Remo, 1930: c5a6
+- Leon Widermanski vs Jan Foltys, Jurata, 1937: d2f3

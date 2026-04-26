@@ -84,7 +84,7 @@ class GameEngine:
             mcts = AlphaZeroMCTS(
                 model=model,
                 device=device,
-                simulations=64,   # 🔥 increase to 128/256 later for stronger play
+                simulations=256,
             )
 
             visits, _ = mcts.run(self.board)

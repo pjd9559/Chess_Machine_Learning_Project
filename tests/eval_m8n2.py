@@ -19,41 +19,56 @@ from src.alphazero_bot.model import ChessNet
 PUZZLE_SUITES = {
     "m8n1": {
         "puzzle_path": ROOT_DIR / "m8n1.csv",
-        "results_path": ROOT_DIR / "tests" / "m8n1_results.txt",
         "label": "mate-in-1",
         "format": "csv",
-        "max_puzzles": 1000,
-        "simulations": 8,
+        "max_puzzles": 100,
+        "simulations": 256,
     },
     "m8n2": {
         "puzzle_path": ROOT_DIR / "m8n2.txt",
-        "results_path": ROOT_DIR / "tests" / "m8n2_results.txt",
         "label": "mate-in-2",
         "format": "txt",
-        "max_puzzles": None,
-        "simulations": 64,
+        "max_puzzles": 100,
+        "simulations": 256,
     },
     "m8n3": {
         "puzzle_path": ROOT_DIR / "m8n3.txt",
-        "results_path": ROOT_DIR / "tests" / "m8n3_results.txt",
         "label": "mate-in-3",
         "format": "txt",
-        "max_puzzles": None,
-        "simulations": 64,
+        "max_puzzles": 100,
+        "simulations": 256,
     },
     "m8n4": {
         "puzzle_path": ROOT_DIR / "m8n4.txt",
-        "results_path": ROOT_DIR / "tests" / "m8n4_results.txt",
         "label": "mate-in-4",
         "format": "txt",
-        "max_puzzles": None,
-        "simulations": 64,
+        "max_puzzles": 100,
+        "simulations": 256,
     },
 }
 
-MODEL_PATHS = {
-    "pre_2000": ROOT_DIR / "src" / "models" / "pre_2000.pt",
-    "post_2020": ROOT_DIR / "src" / "models" / "post_2020.pt",
+MODEL_GROUPS = {
+    "old": {
+        "pre_2000": ROOT_DIR / "src" / "models" / "pre_2000.pt",
+        "post_2020": ROOT_DIR / "src" / "models" / "post_2020.pt",
+    },
+    "v1": {
+        "pre_2000_final_v1": ROOT_DIR / "src" / "models" / "pre_2000_final_v1.pt",
+        "post_2010_final_v1": ROOT_DIR / "src" / "models" / "post_2010_final_v1.pt",
+    },
+    "v2": {
+        "pre_2000_final_v2": ROOT_DIR / "src" / "models" / "pre_2000_final_v2.pt",
+        "post_2010_final_v2": ROOT_DIR / "src" / "models" / "post_2010_final_v2.pt",
+    },
+    "ultral_final": {
+        "pre_2000_ultra_final": ROOT_DIR / "src" / "models" / "pre_2000_ultra_final.pt",
+        "post_2010_ultra_final": ROOT_DIR / "src" / "models" / "post_2010_ultra_final.pt",
+    },
+}
+
+RESULTS_DIR = ROOT_DIR / "tests" / "256"
+GROUP_MAX_PUZZLES = {
+    "ultral_final": 100,
 }
 
 
@@ -205,6 +220,7 @@ def evaluate_model(
 
 
 def format_results(
+    group_name: str,
     suite_name: str,
     mate_label: str,
     results: list[dict[str, object]],
@@ -212,6 +228,7 @@ def format_results(
     evaluated_count: int,
 ) -> str:
     lines = [
+        f"Model generation: {group_name}",
         f"{suite_name.upper()} Puzzle Results",
         f"Criterion: only the first move must match the {mate_label} key move.",
         f"Total puzzles in source: {puzzle_count}",
@@ -243,39 +260,44 @@ def format_results(
 
 
 def main() -> None:
-    loaded_models = {
-        model_name: load_model(model_path)
-        for model_name, model_path in MODEL_PATHS.items()
-    }
+    for group_name, model_paths in MODEL_GROUPS.items():
+        group_dir = RESULTS_DIR / group_name
+        group_dir.mkdir(parents=True, exist_ok=True)
+        loaded_models = {
+            model_name: load_model(model_path)
+            for model_name, model_path in model_paths.items()
+        }
 
-    for suite_name, suite_info in PUZZLE_SUITES.items():
-        if suite_info["format"] == "csv":
-            all_puzzles = parse_csv_puzzles(suite_info["puzzle_path"])
-        else:
-            all_puzzles = parse_puzzles(suite_info["puzzle_path"])
-        puzzles = maybe_limit_puzzles(all_puzzles, suite_info["max_puzzles"])
-        results = []
+        for suite_name, suite_info in PUZZLE_SUITES.items():
+            if suite_info["format"] == "csv":
+                all_puzzles = parse_csv_puzzles(suite_info["puzzle_path"])
+            else:
+                all_puzzles = parse_puzzles(suite_info["puzzle_path"])
+            max_puzzles = GROUP_MAX_PUZZLES.get(group_name, suite_info["max_puzzles"])
+            puzzles = maybe_limit_puzzles(all_puzzles, max_puzzles)
+            results = []
 
-        for model_name, model in loaded_models.items():
-            results.append(
-                evaluate_model(
-                    model_name,
-                    model,
-                    puzzles,
-                    simulations=int(suite_info["simulations"]),
+            for model_name, model in loaded_models.items():
+                results.append(
+                    evaluate_model(
+                        model_name,
+                        model,
+                        puzzles,
+                        simulations=int(suite_info["simulations"]),
+                    )
                 )
-            )
 
-        output = format_results(
-            suite_name,
-            str(suite_info["label"]),
-            results,
-            len(all_puzzles),
-            len(puzzles),
-        )
-        Path(suite_info["results_path"]).write_text(output)
-        print(output)
-        print("-" * 60)
+            output = format_results(
+                group_name,
+                suite_name,
+                str(suite_info["label"]),
+                results,
+                len(all_puzzles),
+                len(puzzles),
+            )
+            (group_dir / f"{suite_name}_results.txt").write_text(output)
+            print(output)
+            print("-" * 60)
 
 
 if __name__ == "__main__":

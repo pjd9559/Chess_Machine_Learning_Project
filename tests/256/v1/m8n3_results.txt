@@ -1,0 +1,41 @@
+Model generation: v1
+M8N3 Puzzle Results
+Criterion: only the first move must match the mate-in-3 key move.
+Total puzzles in source: 489
+Puzzles evaluated: 100
+
+Model: pre_2000_final_v1
+Solved: 14 / 100 (14.0%)
+White to move: 11 / 80 (13.8%)
+Black to move: 3 / 20 (15.0%)
+Solved puzzles:
+- William Evans vs Alexander MacDonnell, London, 1829: c3h8
+- Adolf Anderssen vs Ernst Falkbeer, Berlin, 1851: e4e3
+- Joseph Blackburne vs Wilhelm Steinitz, London, 1883: g5h6
+- Jackson vs Frank Marshall, London, 1899: f2f4
+- Kaldegg vs Zeissel, Vienna, 1903: b5e8
+- Richard Reti vs Saviely Tartakower, Vienna, 1910: d3d8
+- Oldrich Duras vs Amos Burn, San Sebastian, 1911: e7f8
+- Emanuel Lasker vs Frank Marshall, St Petersburg, 1914: a6a7
+- Elekes vs Zitzen, corr., 1917: e5g6
+- Richard Black vs Frank Marshall, New York, 1918: c8c3
+- Max Euwe vs Lohr, Amsterdam, 1923: c1c8
+- Boris Kostic vs Coleman, Perth, 1924: h4h7
+- Meergrun vs NN, London, 1924: f4f8
+- Vladimir Kirillov vs Ilya Kan, Moscow, 1931: f7f1
+
+Model: post_2010_final_v1
+Solved: 10 / 100 (10.0%)
+White to move: 8 / 80 (10.0%)
+Black to move: 2 / 20 (10.0%)
+Solved puzzles:
+- H Popert vs John Cochrane, London, 1841: f5f2
+- Adolf Anderssen vs Lionel Kieseritzky, London, 1851: f5g7
+- Rudolf Spielmann vs Saviely Tartakower, Munich, 1909: f5e7
+- Oscar Chajes vs Charles Jaffe, New York, 1911: g2g8
+- Oldrich Duras vs Amos Burn, San Sebastian, 1911: e7f8
+- Boris Kostic vs Coleman, Perth, 1924: h4h7
+- Frank J Marshall vs Ilya Rabinovich, Baden-Baden, 1925: e1e6
+- Paul Keres vs Verbak, corr., 1932: h5h6
+- Karl Ahues vs Gerhard Weissgerber, Germany, 1935: h8h6
+- Leon Widermanski vs Jan Foltys, Jurata, 1937: d2f3

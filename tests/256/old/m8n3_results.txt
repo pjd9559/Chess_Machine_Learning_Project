@@ -1,0 +1,48 @@
+Model generation: old
+M8N3 Puzzle Results
+Criterion: only the first move must match the mate-in-3 key move.
+Total puzzles in source: 489
+Puzzles evaluated: 100
+
+Model: pre_2000
+Solved: 15 / 100 (15.0%)
+White to move: 14 / 80 (17.5%)
+Black to move: 1 / 20 (5.0%)
+Solved puzzles:
+- William Evans vs Alexander MacDonnell, London, 1829: c3h8
+- Jackson vs Frank Marshall, London, 1899: f2f4
+- Distl vs Filip Rozsypal, Prague, 1900: d6d8
+- K Kunitz vs B Salamon, Tangier, 1907: e4g6
+- Richard Reti vs Saviely Tartakower, Vienna, 1910: d3d8
+- Oscar Chajes vs Charles Jaffe, New York, 1911: g2g8
+- Oldrich Duras vs Amos Burn, San Sebastian, 1911: e7f8
+- Elekes vs Zitzen, corr., 1917: e5g6
+- Holger Norman-Hansen vs Finkelstein, Copenhagen, 1918: c7b6
+- Max Euwe vs Lohr, Amsterdam, 1923: c1c8
+- Boris Kostic vs Coleman, Perth, 1924: h4h7
+- Grigory Lowenfisch vs Freymann, USSR, 1925: h5f7
+- Eugene Znosko-Borovsky vs Daniel Noteboom, Tenby, 1928: h3h7
+- Roberto Grau vs Edgard Colle, San Remo, 1930: c5a6
+- Max Euwe vs FA Spinhoven, Hague, 1933: f1f8
+
+Model: post_2020
+Solved: 16 / 100 (16.0%)
+White to move: 13 / 80 (16.2%)
+Black to move: 3 / 20 (15.0%)
+Solved puzzles:
+- Madame de Remusat vs Napoleon I, Paris, 1802: f8c5
+- Adolf Anderssen vs Lionel Kieseritzky, London, 1851: f5g7
+- Louis Paulsen vs NN, 1857: h5f7
+- J Robey vs Adolf Anderssen, London, 1862: f2g4
+- George Mackenzie vs Siegbert Tarrasch, Hamburg, 1885: g6e7
+- Distl vs Filip Rozsypal, Prague, 1900: d6d8
+- Rudolf Spielmann vs Saviely Tartakower, Munich, 1909: f5e7
+- Richard Reti vs Saviely Tartakower, Vienna, 1910: d3d8
+- Oscar Chajes vs Charles Jaffe, New York, 1911: g2g8
+- Oldrich Duras vs Amos Burn, San Sebastian, 1911: e7f8
+- Elekes vs Zitzen, corr., 1917: e5g6
+- George Koltanowski vs Arthur Dunkelblum, Antwerp, 1923: d3d8
+- Boris Kostic vs Coleman, Perth, 1924: h4h7
+- Grigory Lowenfisch vs Freymann, USSR, 1925: h5f7
+- Leon Widermanski vs Jan Foltys, Jurata, 1937: d2f3
+- Jose Raul Capablanca vs G Vassaux, Buenos Aires, 1939: h3h7

@@ -1,0 +1,43 @@
+Model generation: ultral_final
+M8N3 Puzzle Results
+Criterion: only the first move must match the mate-in-3 key move.
+Total puzzles in source: 489
+Puzzles evaluated: 100
+
+Model: pre_2000_ultra_final
+Solved: 11 / 100 (11.0%)
+White to move: 10 / 80 (12.5%)
+Black to move: 1 / 20 (5.0%)
+Solved puzzles:
+- Consultants vs Mikhail Chigorin, St Petersburg, 1875: f3g3
+- Dadian vs Bitcham, Zugridi, 1892: d5f6
+- G Bellingham vs A Rutherford, Craigside, 1897: e3h6
+- Distl vs Filip Rozsypal, Prague, 1900: d6d8
+- K Kunitz vs B Salamon, Tangier, 1907: e4g6
+- Oldrich Duras vs Amos Burn, San Sebastian, 1911: e7f8
+- Holger Norman-Hansen vs Finkelstein, Copenhagen, 1918: c7b6
+- Eugene Znosko-Borovsky vs Daniel Noteboom, Tenby, 1928: h3h7
+- Roberto Grau vs Edgard Colle, San Remo, 1930: c5a6
+- Max Euwe vs FA Spinhoven, Hague, 1933: f1f8
+- Arnold Denker vs H Baker, USA, 1937: g7g8
+
+Model: post_2010_ultra_final
+Solved: 15 / 100 (15.0%)
+White to move: 14 / 80 (17.5%)
+Black to move: 1 / 20 (5.0%)
+Solved puzzles:
+- William Evans vs Alexander MacDonnell, London, 1829: c3h8
+- H Popert vs John Cochrane, London, 1841: f5f2
+- Frederic Deacon vs Valentine Green, London, 1862: f4g6
+- George Mackenzie vs Siegbert Tarrasch, Hamburg, 1885: g6e7
+- Dadian vs Bitcham, Zugridi, 1892: d5f6
+- G Bellingham vs A Rutherford, Craigside, 1897: e3h6
+- Georg Marco vs Albert Hodges, Cambridge Springs, 1904: d2d7
+- JR Capablanca vs TA Carter, St Louis, 1909: g4g7
+- Richard Reti vs Saviely Tartakower, Vienna, 1910: d3d8
+- Gessner vs Whitaker, Chicago, 1916: e4f6
+- Boris Kostic vs Coleman, Perth, 1924: h4h7
+- Grigory Lowenfisch vs Freymann, USSR, 1925: h5f7
+- Amos Pokorny vs Karl Berndtsson, Hamburg, 1930: h6h8
+- Paul Keres vs Verbak, corr., 1932: h5h6
+- Arnold Denker vs H Baker, USA, 1937: g7g8
