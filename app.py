@@ -229,6 +229,26 @@ section[data-testid="stSidebar"] .stMarkdown h3 {
     box-shadow: 0 4px 16px rgba(0,0,0,0.3);
 }
 
+/* ── Form controls ──────────────────────────────────────────── */
+label[data-testid="stWidgetLabel"] p,
+div[data-testid="stCaptionContainer"] p {
+    color: #1f2937 !important;
+}
+
+div[data-baseweb="select"] > div {
+    background: rgba(255,255,255,0.92) !important;
+    color: #111827 !important;
+}
+
+div[data-baseweb="select"] * {
+    color: #111827 !important;
+}
+
+div[data-testid="stSlider"] [data-baseweb="slider"] + div p,
+div[data-testid="stSlider"] [role="slider"] {
+    color: #111827 !important;
+}
+
 /* ── Square buttons (chess board) ───────────────────────────── */
 .square-btn {
     width: 56px; height: 56px;
@@ -303,6 +323,7 @@ def init_session_state():
         "tournament_games": [],
         "tournament_current_game": "",
         "promotion_pending": None,
+        "human_has_moved": False,
         "move_delay": 0.8,
         "tournament_pair": "v6",
         "tournament_num_games": 8,
@@ -327,6 +348,7 @@ def new_game():
     st.session_state.game_over = False
     st.session_state.bot_vs_bot_running = False
     st.session_state.promotion_pending = None
+    st.session_state.human_has_moved = False
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -379,20 +401,6 @@ with st.sidebar:
     elif mode == "Tests":
         st.markdown("### 🧪 Tests")
         st.markdown("Browse the test workspace for this project.")
-
-    st.markdown("---")
-
-    # Game controls
-    st.markdown("### 🎛 Controls")
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("🆕 New Game", use_container_width=True):
-            new_game()
-            st.rerun()
-    with col2:
-        if st.button("🔃 Flip Board", use_container_width=True):
-            st.session_state.flipped = not st.session_state.flipped
-            st.rerun()
 
 # ═══════════════════════════════════════════════════════════════════════════════
 #  Helper: Render the chessboard as an interactive SVG
@@ -624,6 +632,7 @@ def handle_square_click(sq, engine):
         if success:
             # Sync board reference
             st.session_state.board = engine.board
+            st.session_state.human_has_moved = True
             st.rerun()
 
 
@@ -730,6 +739,7 @@ def render_human_move_controls(engine, human_is_white, disabled=False):
                 st.session_state.selected_square = None
                 st.session_state.legal_targets = []
                 st.session_state.promotion_pending = None
+                st.session_state.human_has_moved = True
                 st.rerun()
 
     st.markdown('</div>', unsafe_allow_html=True)
@@ -742,6 +752,7 @@ def render_human_move_controls(engine, human_is_white, disabled=False):
 def page_human_vs_bot():
     engine = st.session_state.engine
     board  = engine.board
+    controls_locked = st.session_state.get("human_has_moved", False)
     nn_personality_keys = [
         "pre_2000_nn",
         "post_2020_nn",
@@ -782,22 +793,36 @@ def page_human_vs_bot():
 
         st.markdown('<div class="glass-card">', unsafe_allow_html=True)
         st.markdown("#### ⚙️ Controls")
+        previous_human_color = st.session_state.human_color
+        if "human_color_sel" not in st.session_state:
+            st.session_state.human_color_sel = st.session_state.human_color
         human_color = st.selectbox(
             "Play as",
             ["white", "black"],
             key="human_color_sel",
+            disabled=controls_locked,
         )
+        if not controls_locked and human_color != previous_human_color:
+            st.session_state.human_color = human_color
+            next_bot_key = "black_personality" if human_color == "white" else "white_personality"
+            st.session_state.bot_personality_sel = st.session_state.get(next_bot_key, "pre_2000_v6_nn")
+            st.rerun()
         st.session_state.human_color = human_color
         human_is_white = human_color == "white"
         bot_key = "black_personality" if human_is_white else "white_personality"
+        current_bot = st.session_state.get(bot_key, "pre_2000_v6_nn")
+        if "bot_personality_sel" not in st.session_state:
+            st.session_state.bot_personality_sel = current_bot
         selected_bot = st.selectbox(
             "Bot",
             nn_personality_keys,
             format_func=lambda k: f"{get_personality(k).icon} {get_personality(k).name}",
             key="bot_personality_sel",
-            index=nn_personality_keys.index(st.session_state.get(bot_key, "pre_2000_v6_nn")) if st.session_state.get(bot_key, "pre_2000_v6_nn") in nn_personality_keys else 2,
+            disabled=controls_locked,
         )
         st.session_state[bot_key] = selected_bot
+        if controls_locked:
+            st.caption("Start a new game to change your color or opponent.")
         st.session_state.human_mcts_simulations = st.slider(
             "MCTS simulations", 1, 512, st.session_state.human_mcts_simulations, 1, key="human_mcts_slider"
         )
@@ -808,14 +833,23 @@ def page_human_vs_bot():
             f"<small>{p.description}</small></div>",
             unsafe_allow_html=True,
         )
-        ctrl_cols = st.columns(2)
-        with ctrl_cols[0]:
+        primary_ctrl_cols = st.columns(2)
+        with primary_ctrl_cols[0]:
+            if st.button("🆕 New Game", use_container_width=True, key="human_new_game_main"):
+                new_game()
+                st.rerun()
+        with primary_ctrl_cols[1]:
+            if st.button("🔃 Flip Board", use_container_width=True, key="human_flip_board_main"):
+                st.session_state.flipped = not st.session_state.flipped
+                st.rerun()
+        secondary_ctrl_cols = st.columns(2)
+        with secondary_ctrl_cols[0]:
             if st.button("↩️ Undo", use_container_width=True, key="human_undo_main"):
                 engine.undo_two_moves()
                 st.session_state.selected_square = None
                 st.session_state.legal_targets = []
                 st.rerun()
-        with ctrl_cols[1]:
+        with secondary_ctrl_cols[1]:
             if st.button("🏳 Resign", use_container_width=True, key="human_resign_main"):
                 st.session_state.game_over = True
                 st.rerun()
