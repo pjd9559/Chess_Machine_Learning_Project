@@ -1,5 +1,11 @@
 # Project: Grandmaster Evolution & Positional Chess Engine
 
+> [!IMPORTANT]
+> The final model files `post_2010_final_v6.pt` and `pre_2000_final_v6.pt` are each over 100 MB, so they cannot be pushed to GitHub in this repository.
+> Download both models from Dropbox:
+> https://www.dropbox.com/scl/fo/8qomt37pwz8q2vw1vx4o5/ADJngMPKYDyf40xrH2hUI7I?rlkey=cyz6htx9ipxizz77e5twyt62q&st=zg426sev&dl=0
+> After downloading, move the two files into `src/models`.
+
 ## 1. Project Objective
 Build a Python-based Chess application using **Streamlit** that supports:
 * **Human vs. Bot:** Play against selected neural model checkpoints.
