@@ -43,16 +43,12 @@ PRE_2000_PATH = BASE_DIR / "src" / "models" / "pre_2000.pt"
 POST_2020_PATH = BASE_DIR / "src" / "models" / "post_2020.pt"
 PRE_2000_V6_PATH = BASE_DIR / "src" / "models" / "pre_2000_final_v6.pt"
 POST_2010_V6_PATH = BASE_DIR / "src" / "models" / "post_2010_final_v6.pt"
-PRE_2000_ULTRA_FINAL_PATH = BASE_DIR / "src" / "models" / "pre_2000_ultra_final.pt"
-POST_2010_ULTRA_FINAL_PATH = BASE_DIR / "src" / "models" / "post_2010_ultra_final.pt"
 
 
 PRE_2000_MODEL = load_model(PRE_2000_PATH)
 POST_2020_MODEL = load_model(POST_2020_PATH)
 PRE_2000_V6_MODEL = load_model(PRE_2000_V6_PATH)
 POST_2010_V6_MODEL = load_model(POST_2010_V6_PATH)
-PRE_2000_ULTRA_FINAL_MODEL = load_model(PRE_2000_ULTRA_FINAL_PATH)
-POST_2010_ULTRA_FINAL_MODEL = load_model(POST_2010_ULTRA_FINAL_PATH)
 
 
 # ── Inject new NN personalities ─────────────────────────
@@ -87,22 +83,6 @@ ALL_PERSONALITIES["post_2010_v6_nn"] = type("P", (), {
     "description": "Version 6 checkpoint trained on modern games",
     "color": "#ff6b6b",
     "model": POST_2010_V6_MODEL
-})()
-
-ALL_PERSONALITIES["pre_2000_ultra_final_nn"] = type("P", (), {
-    "name": "Pre-2000 Final Bot",
-    "icon": "♜",
-    "description": "Latest final checkpoint trained on classical-era games",
-    "color": "#3498db",
-    "model": PRE_2000_ULTRA_FINAL_MODEL
-})()
-
-ALL_PERSONALITIES["post_2010_ultra_final_nn"] = type("P", (), {
-    "name": "Post-2010 Final Bot",
-    "icon": "🔥",
-    "description": "Latest final checkpoint trained on modern games",
-    "color": "#e74c3c",
-    "model": POST_2010_ULTRA_FINAL_MODEL
 })()
 
 # ═══════════════════════════════════════════════════════════════════════════════
